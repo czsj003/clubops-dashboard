@@ -1,3 +1,5 @@
+export type Country = "ENGLAND" | "SPAIN" | "ITALY" | "GERMANY" | "FRANCE";
+
 export interface User {
   id: number;
   name: string;
@@ -13,6 +15,8 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
+  clubName: string;
+  country: Country;
 }
 
 export interface LoginRequest {

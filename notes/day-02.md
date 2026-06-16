@@ -47,13 +47,14 @@ Important fields:
 ## APIs added
 
 ### Register
-
-```txt
+```
 POST /api/auth/register
 ```
 
 ## Login
+```
 POST /api/auth/login
+```
 
 ## Current User
 GET /api/auth/me

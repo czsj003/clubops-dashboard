@@ -63,3 +63,23 @@ Implemented authentication foundation:
 - Added AuthContext for global authentication state
 - Added ProtectedRoute
 - Configured Axios to attach JWT token automatically
+
+## Day 3 Progress
+
+Implemented the Club and Team foundation:
+- Created Club entity
+- Created Team entity
+- Added Country enum
+- Added TeamType enum
+- Added ClubRepository and TeamRepository
+- Updated registration flow to automatically create a Club
+- Added country-based team system design
+- England now creates:
+  - First Team
+  - U21
+  - U18
+- Added GET /api/club
+- Added PUT /api/club
+- Added GET /api/teams
+- Updated frontend registration form with club name and country system
+- Updated Dashboard to display club and team information
