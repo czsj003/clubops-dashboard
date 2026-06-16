@@ -120,3 +120,30 @@ Additional Day 4 position rules:
 - Each player must have at least one position rated 20.
 - If Goalkeeper is rated 20, all other stored outfield positions must be rated 1.
 - Position combination rules are validated in the service layer because a single PlayerPosition entity cannot inspect all positions for the same player.
+
+## Day 5 Progress
+
+Implemented the backend data contract for the Football Manager style player panel.
+
+Added:
+- GET /api/players
+- GET /api/players/{id}
+- Player list DTO
+- Player detail DTO
+- Attribute group DTO
+- Position DTO
+- Language DTO
+- Secondary nationality DTO
+- Player personality enum
+- Media handling style enum
+- Player personality calculator
+- Media handling style calculator
+- Goalkeeper detection logic
+- Position rule validation
+
+Important rules:
+- Each player must have at least one position rated 20.
+- If Goalkeeper is rated 20, all other stored positions must be rated 1.
+- Personality is calculated from hidden attributes.
+- Media handling style is calculated from hidden attributes.
+- Goalkeeper and outfield player panels use different frontend display logic.

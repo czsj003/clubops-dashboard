@@ -166,7 +166,15 @@ public class DevPlayerSeedService {
 
         Player savedPlayer = playerRepository.save(player);
 
-        PlayerAttribute attributes = createDefaultAttributes(savedPlayer, ca, pa, mainPosition);
+        PlayerAttribute attributes = createDefaultAttributes(
+                savedPlayer,
+                ca,
+                pa,
+                mainPosition,
+                firstName,
+                lastName
+        );
+
         playerAttributeRepository.save(attributes);
 
         List<PlayerPosition> positions = createDefaultPositions(
@@ -201,9 +209,50 @@ public class DevPlayerSeedService {
             Player player,
             int ca,
             int pa,
-            PlayerPositionType mainPosition
+            PlayerPositionType mainPosition,
+            String firstName,
+            String lastName
     ) {
         boolean isGoalkeeper = mainPosition == PlayerPositionType.GOALKEEPER;
+
+        int professionalism = 13;
+        int pressure = 12;
+        int ambition = 12;
+        int temperament = 11;
+        int loyalty = 11;
+        int sportsmanship = 12;
+        int determination = 13;
+        int controversy = 5;
+        int leadership = 10;
+
+        if (firstName.equals("Oliver")) {
+            professionalism = 18;
+            temperament = 14;
+            determination = 14;
+        }
+
+        if (firstName.equals("Daniel")) {
+            ambition = 14;
+            determination = 18;
+        }
+
+        if (firstName.equals("Mateo")) {
+            ambition = 18;
+            loyalty = 3;
+            determination = 12;
+        }
+
+        if (firstName.equals("Ethan")) {
+            leadership = 20;
+            determination = 20;
+        }
+
+        if (firstName.equals("Noah")) {
+            professionalism = 15;
+            pressure = 15;
+            temperament = 15;
+            controversy = 4;
+        }
 
         return PlayerAttribute.builder()
                 .player(player)
@@ -216,13 +265,13 @@ public class DevPlayerSeedService {
                 .rightFoot(20)
 
                 .adaptability(10)
-                .ambition(12)
-                .controversy(5)
-                .loyalty(11)
-                .pressure(12)
-                .professionalism(13)
-                .sportsmanship(12)
-                .temperament(11)
+                .ambition(ambition)
+                .controversy(controversy)
+                .loyalty(loyalty)
+                .pressure(pressure)
+                .professionalism(professionalism)
+                .sportsmanship(sportsmanship)
+                .temperament(temperament)
 
                 .aggression(10)
                 .anticipation(12)
@@ -231,11 +280,11 @@ public class DevPlayerSeedService {
                 .concentration(11)
                 .consistency(10)
                 .decisions(12)
-                .determination(13)
+                .determination(determination)
                 .dirtiness(5)
                 .flair(11)
                 .importantMatches(10)
-                .leadership(10)
+                .leadership(leadership)
                 .movement(12)
                 .positioning(12)
                 .teamWork(13)
