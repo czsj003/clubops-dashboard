@@ -147,3 +147,48 @@ Important rules:
 - Personality is calculated from hidden attributes.
 - Media handling style is calculated from hidden attributes.
 - Goalkeeper and outfield player panels use different frontend display logic.
+
+## Day 6 Progress
+
+Completed the remaining backend data required for the player main panel.
+
+Added:
+- Player contract model
+- Contract bonus model
+- Currency system foundation
+- Player estimated transfer value placeholder
+- Contract data in player detail API
+- Bonus data in player detail API
+- Currency list in player detail API
+- Weekly wage display in player list API
+
+Contract fields include:
+- Start date
+- End date
+- Contract type
+- Wage amount
+- Wage display period
+- Wage currency
+- Team
+- Squad number
+- Release clause
+- Contract bonuses
+
+Contract bonus rules:
+- Appearance Fee is automatically generated as weekly wage / 5.
+- Unused Substitute Fee is automatically generated as weekly wage / 20.
+- Other bonuses are optional.
+
+Currency system:
+- GBP
+- EUR
+- TRY
+- SAR
+- CNY
+- USD
+- BRL
+- ARS
+
+Transfer value:
+- Added estimated value in GBP as a placeholder.
+- Full transfer value calculation will be implemented later.

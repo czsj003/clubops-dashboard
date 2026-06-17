@@ -2,9 +2,11 @@ package com.clubops.player.dto;
 
 import com.clubops.player.CountryCode;
 import com.clubops.player.Player;
+import com.clubops.currency.CurrencyCode;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.math.BigDecimal;
 
 public record PlayerListItemResponse(
         Long id,
@@ -16,13 +18,18 @@ public record PlayerListItemResponse(
         String teamName,
         Integer currentAbility,
         Integer potentialAbility,
-        Boolean isGoalkeeper
+        Boolean isGoalkeeper,
+        BigDecimal estimatedValueInGbp,
+        BigDecimal weeklyWage,
+        CurrencyCode wageCurrency
 ) {
     public static PlayerListItemResponse from(
             Player player,
             Integer currentAbility,
             Integer potentialAbility,
-            Boolean isGoalkeeper
+            Boolean isGoalkeeper,
+            BigDecimal weeklyWage,
+            CurrencyCode wageCurrency
     ) {
         return new PlayerListItemResponse(
                 player.getId(),
@@ -34,7 +41,10 @@ public record PlayerListItemResponse(
                 player.getTeam().getName(),
                 currentAbility,
                 potentialAbility,
-                isGoalkeeper
+                isGoalkeeper,
+                player.getEstimatedValueInGbp(),
+                weeklyWage,
+                wageCurrency
         );
     }
 

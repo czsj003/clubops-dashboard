@@ -6,6 +6,13 @@ import com.clubops.player.dto.*;
 import com.clubops.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.clubops.contract.ContractBonusRepository;
+import com.clubops.contract.PlayerContract;
+import com.clubops.contract.PlayerContractRepository;
+import com.clubops.contract.dto.ContractBonusResponse;
+import com.clubops.contract.dto.PlayerContractResponse;
+import com.clubops.currency.CurrencyCode;
+import com.clubops.currency.CurrencyService;
 
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +29,9 @@ public class PlayerService {
     private final PlayerSecondaryNationalityRepository secondaryNationalityRepository;
     private final PlayerPersonalityCalculator personalityCalculator;
     private final MediaHandlingStyleCalculator mediaHandlingStyleCalculator;
+    private final PlayerContractRepository playerContractRepository;
+    private final ContractBonusRepository contractBonusRepository;
+    private final CurrencyService currencyService;
 
     public List<PlayerListItemResponse> getCurrentUserPlayers(User user) {
         Club club = clubRepository.findByUser(user)
@@ -36,11 +46,16 @@ public class PlayerService {
                     List<PlayerPosition> positions = playerPositionRepository.findByPlayer(player);
                     boolean isGoalkeeper = isGoalkeeper(positions);
 
+                    PlayerContract contract = playerContractRepository.findByPlayer(player)
+                        .orElse(null);
+
                     return PlayerListItemResponse.from(
-                            player,
-                            attributes.getCurrentAbility(),
-                            attributes.getPotentialAbility(),
-                            isGoalkeeper
+                                player,
+                                attributes.getCurrentAbility(),
+                                attributes.getPotentialAbility(),
+                                isGoalkeeper,
+                                contract != null ? contract.getWageAmount() : null,
+                                contract != null ? contract.getWageCurrency() : null
                     );
                 })
                 .sorted(Comparator.comparing(PlayerListItemResponse::displayName))
@@ -86,6 +101,24 @@ public class PlayerService {
         PlayerPersonality personality = personalityCalculator.calculate(attributes);
         MediaHandlingStyle mediaHandlingStyle = mediaHandlingStyleCalculator.calculate(attributes);
 
+        PlayerContractResponse contractResponse = playerContractRepository.findByPlayer(player)
+                .map(contract -> {
+                List<ContractBonusResponse> bonusResponses = contractBonusRepository
+                        .findByContractOrderByBonusTypeAsc(contract)
+                        .stream()
+                        .map(ContractBonusResponse::from)
+                        .toList();
+
+                return PlayerContractResponse.from(contract, bonusResponses);
+                })
+                .orElse(null);
+
+        PlayerValueResponse valueResponse = new PlayerValueResponse(
+                player.getEstimatedValueInGbp(),
+                CurrencyCode.GBP,
+                false
+        );
+
         return PlayerDetailResponse.from(
                 player,
                 attributes,
@@ -94,7 +127,11 @@ public class PlayerService {
                 secondaryNationalityResponses,
                 isGoalkeeper,
                 personality,
-                mediaHandlingStyle
+                mediaHandlingStyle,
+                contractResponse,
+                valueResponse,
+                currencyService.getDefaultCurrency(),
+                currencyService.getAvailableCurrencies()
         );
     }
 

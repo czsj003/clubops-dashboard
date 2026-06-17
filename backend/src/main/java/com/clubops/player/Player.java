@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "players")
@@ -80,6 +81,9 @@ public class Player {
     @Enumerated(EnumType.STRING)
     @Column(name = "nationality", nullable = false)
     private CountryCode nationality;
+
+    @Column(name = "estimated_value_in_gbp", precision = 15, scale = 2)
+    private BigDecimal estimatedValueInGbp;
 
     // Display helper
     @Column(name = "display_name", nullable = false)

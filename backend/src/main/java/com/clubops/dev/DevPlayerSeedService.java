@@ -1,18 +1,46 @@
 package com.clubops.dev;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.clubops.club.Club;
 import com.clubops.club.ClubRepository;
-import com.clubops.player.*;
+import com.clubops.contract.ContractBonus;
+import com.clubops.contract.ContractBonusRepository;
+import com.clubops.contract.ContractBonusType;
+import com.clubops.contract.PlayerContract;
+import com.clubops.contract.PlayerContractRepository;
+import com.clubops.contract.PlayerContractType;
+import com.clubops.contract.WageDisplayPeriod;
+import com.clubops.currency.CurrencyCode;
+import com.clubops.player.CountryCode;
+import com.clubops.player.HairColor;
+import com.clubops.player.HairLength;
+import com.clubops.player.LanguageCode;
+import com.clubops.player.Player;
+import com.clubops.player.PlayerAttribute;
+import com.clubops.player.PlayerAttributeRepository;
+import com.clubops.player.PlayerLanguage;
+import com.clubops.player.PlayerLanguageRepository;
+import com.clubops.player.PlayerPosition;
+import com.clubops.player.PlayerPositionRepository;
+import com.clubops.player.PlayerPositionType;
+import com.clubops.player.PlayerRepository;
+import com.clubops.player.PlayerSecondaryNationality;
+import com.clubops.player.PlayerSecondaryNationalityRepository;
+import com.clubops.player.Race;
+import com.clubops.player.SkinTone;
 import com.clubops.team.Team;
 import com.clubops.team.TeamRepository;
 import com.clubops.team.TeamType;
 import com.clubops.user.User;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +53,8 @@ public class DevPlayerSeedService {
     private final PlayerPositionRepository playerPositionRepository;
     private final PlayerLanguageRepository playerLanguageRepository;
     private final PlayerSecondaryNationalityRepository secondaryNationalityRepository;
+    private final PlayerContractRepository playerContractRepository;
+    private final ContractBonusRepository contractBonusRepository;
 
     @Transactional
     public String seedPlayersForCurrentUser(User user) {
@@ -162,6 +192,7 @@ public class DevPlayerSeedService {
                 .birthCity(birthCity)
                 .birthCountry(birthCountry)
                 .nationality(nationality)
+                .estimatedValueInGbp(estimateSeedValue(ca, pa, dateOfBirth))
                 .build();
 
         Player savedPlayer = playerRepository.save(player);
@@ -203,6 +234,19 @@ public class DevPlayerSeedService {
 
             secondaryNationalityRepository.save(secondaryNationality);
         }
+
+        PlayerContract contract = createSeedContract(
+                savedPlayer,
+                club,
+                team,
+                ca,
+                mainPosition
+        );
+
+        PlayerContract savedContract = playerContractRepository.save(contract);
+
+        List<ContractBonus> bonuses = createSeedBonuses(savedContract, contract.getWageAmount(), mainPosition);
+        contractBonusRepository.saveAll(bonuses);
     }
 
     private PlayerAttribute createDefaultAttributes(
@@ -263,7 +307,6 @@ public class DevPlayerSeedService {
                 .worldReputation(50)
                 .leftFoot(10)
                 .rightFoot(20)
-
                 .adaptability(10)
                 .ambition(ambition)
                 .controversy(controversy)
@@ -272,7 +315,6 @@ public class DevPlayerSeedService {
                 .professionalism(professionalism)
                 .sportsmanship(sportsmanship)
                 .temperament(temperament)
-
                 .aggression(10)
                 .anticipation(12)
                 .bravery(12)
@@ -290,7 +332,6 @@ public class DevPlayerSeedService {
                 .teamWork(13)
                 .vision(12)
                 .workRate(13)
-
                 .acceleration(12)
                 .agility(12)
                 .balance(12)
@@ -300,7 +341,6 @@ public class DevPlayerSeedService {
                 .pace(12)
                 .stamina(13)
                 .strength(12)
-
                 .corners(10)
                 .crossing(10)
                 .dribbling(11)
@@ -316,7 +356,6 @@ public class DevPlayerSeedService {
                 .tackling(10)
                 .technique(12)
                 .versatility(10)
-
                 .aerialAbility(isGoalkeeper ? 13 : 0)
                 .commandOfArea(isGoalkeeper ? 12 : 0)
                 .communication(isGoalkeeper ? 12 : 0)
@@ -340,16 +379,16 @@ public class DevPlayerSeedService {
         }
 
         boolean isNaturalGoalkeeper = positions.stream()
-                .anyMatch(position ->
-                        position.getPositionType() == PlayerPositionType.GOALKEEPER
-                                && position.getRating() == 20
+                .anyMatch(position
+                        -> position.getPositionType() == PlayerPositionType.GOALKEEPER
+                && position.getRating() == 20
                 );
 
         if (isNaturalGoalkeeper) {
             boolean hasInvalidOutfieldPosition = positions.stream()
-                    .anyMatch(position ->
-                            position.getPositionType() != PlayerPositionType.GOALKEEPER
-                                    && position.getRating() != 1
+                    .anyMatch(position
+                            -> position.getPositionType() != PlayerPositionType.GOALKEEPER
+                    && position.getRating() != 1
                     );
 
             if (hasInvalidOutfieldPosition) {
@@ -376,25 +415,21 @@ public class DevPlayerSeedService {
                             .positionType(PlayerPositionType.GOALKEEPER)
                             .rating(20)
                             .build(),
-
                     PlayerPosition.builder()
                             .player(player)
                             .positionType(PlayerPositionType.DEFENDER_CENTRAL)
                             .rating(1)
                             .build(),
-
                     PlayerPosition.builder()
                             .player(player)
                             .positionType(PlayerPositionType.DEFENSIVE_MIDFIELDER)
                             .rating(1)
                             .build(),
-
                     PlayerPosition.builder()
                             .player(player)
                             .positionType(PlayerPositionType.MIDFIELDER_CENTRAL)
                             .rating(1)
                             .build(),
-
                     PlayerPosition.builder()
                             .player(player)
                             .positionType(PlayerPositionType.STRIKER)
@@ -410,5 +445,133 @@ public class DevPlayerSeedService {
                         .rating(20)
                         .build()
         );
+    }
+
+    private BigDecimal estimateSeedValue(int ca, int pa, LocalDate dateOfBirth) {
+        int age = LocalDate.now().getYear() - dateOfBirth.getYear();
+
+        long base = (long) ca * 50_000L;
+        long potentialBoost = (long) Math.max(pa - ca, 0) * 75_000L;
+
+        double ageMultiplier;
+
+        if (age <= 21) {
+            ageMultiplier = 1.4;
+        } else if (age <= 25) {
+            ageMultiplier = 1.2;
+        } else if (age <= 29) {
+            ageMultiplier = 1.0;
+        } else if (age <= 32) {
+            ageMultiplier = 0.7;
+        } else {
+            ageMultiplier = 0.4;
+        }
+
+        long value = Math.round((base + potentialBoost) * ageMultiplier);
+
+        return BigDecimal.valueOf(value);
+    }
+
+    private PlayerContract createSeedContract(
+            Player player,
+            Club club,
+            Team team,
+            int ca,
+            PlayerPositionType mainPosition
+    ) {
+        BigDecimal wage = estimateSeedWeeklyWage(ca);
+
+        return PlayerContract.builder()
+                .player(player)
+                .club(club)
+                .team(team)
+                .squadNumber(generateSeedSquadNumber(mainPosition))
+                .startDate(LocalDate.of(2025, 7, 1))
+                .endDate(LocalDate.of(2029, 6, 30))
+                .contractType(PlayerContractType.FULL_TIME)
+                .wageAmount(wage)
+                .wageCurrency(CurrencyCode.GBP)
+                .wageDisplayPeriod(WageDisplayPeriod.WEEKLY)
+                .releaseClauseAmount(null)
+                .releaseClauseCurrency(null)
+                .build();
+    }
+
+    private BigDecimal estimateSeedWeeklyWage(int ca) {
+        long wage = Math.max(500L, ca * 250L);
+        return BigDecimal.valueOf(wage);
+    }
+
+    private Integer generateSeedSquadNumber(PlayerPositionType mainPosition) {
+        return switch (mainPosition) {
+            case GOALKEEPER ->
+                1;
+            case DEFENDER_CENTRAL ->
+                5;
+            case MIDFIELDER_CENTRAL ->
+                8;
+            case ATTACKING_MIDFIELDER_CENTRAL ->
+                10;
+            case STRIKER ->
+                9;
+            default ->
+                null;
+        };
+    }
+
+    private BigDecimal divideMoney(BigDecimal amount, int divisor) {
+        return amount.divide(BigDecimal.valueOf(divisor), 2, RoundingMode.HALF_UP);
+    }
+
+    private List<ContractBonus> createSeedBonuses(
+            PlayerContract contract,
+            BigDecimal weeklyWage,
+            PlayerPositionType mainPosition
+    ) {
+        ContractBonus appearanceFee = ContractBonus.builder()
+                .contract(contract)
+                .bonusType(ContractBonusType.APPEARANCE_FEE)
+                .amount(divideMoney(weeklyWage, 5))
+                .currency(CurrencyCode.GBP)
+                .autoGenerated(true)
+                .build();
+
+        ContractBonus unusedSubstituteFee = ContractBonus.builder()
+                .contract(contract)
+                .bonusType(ContractBonusType.UNUSED_SUBSTITUTE_FEE)
+                .amount(divideMoney(weeklyWage, 20))
+                .currency(CurrencyCode.GBP)
+                .autoGenerated(true)
+                .build();
+
+        if (mainPosition == PlayerPositionType.GOALKEEPER) {
+            ContractBonus cleanSheetBonus = ContractBonus.builder()
+                    .contract(contract)
+                    .bonusType(ContractBonusType.CLEAN_SHEET_BONUS)
+                    .amount(divideMoney(weeklyWage, 4))
+                    .currency(CurrencyCode.GBP)
+                    .autoGenerated(false)
+                    .build();
+
+            return List.of(appearanceFee, unusedSubstituteFee, cleanSheetBonus);
+        }
+
+        ContractBonus goalBonus = ContractBonus.builder()
+                .contract(contract)
+                .bonusType(ContractBonusType.GOAL_BONUS)
+                .amount(divideMoney(weeklyWage, 3))
+                .currency(CurrencyCode.GBP)
+                .autoGenerated(false)
+                .build();
+
+        ContractBonus assistBonus = ContractBonus.builder()
+                .contract(contract)
+                .bonusType(ContractBonusType.ASSIST_BONUS)
+                .amount(divideMoney(weeklyWage, 4))
+                .currency(CurrencyCode.GBP)
+                .autoGenerated(false)
+                .build();
+
+        return List.of(appearanceFee, unusedSubstituteFee, goalBonus, assistBonus);
     }
 }

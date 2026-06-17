@@ -2,6 +2,9 @@ package com.clubops.player.dto;
 
 import com.clubops.player.*;
 import com.clubops.team.TeamType;
+import com.clubops.contract.dto.PlayerContractResponse;
+import com.clubops.currency.CurrencyCode;
+import com.clubops.currency.dto.CurrencyInfoResponse;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -45,7 +48,12 @@ public record PlayerDetailResponse(
         PlayerAttributeGroupResponse attributes,
 
         PlayerPersonality personality,
-        MediaHandlingStyle mediaHandlingStyle
+        MediaHandlingStyle mediaHandlingStyle,
+
+        PlayerContractResponse contract,
+        PlayerValueResponse value,
+        CurrencyCode defaultCurrency,
+        List<CurrencyInfoResponse> availableCurrencies
 ) {
     public static PlayerDetailResponse from(
             Player player,
@@ -55,7 +63,11 @@ public record PlayerDetailResponse(
             List<PlayerSecondaryNationalityResponse> secondaryNationalities,
             Boolean isGoalkeeper,
             PlayerPersonality personality,
-            MediaHandlingStyle mediaHandlingStyle
+            MediaHandlingStyle mediaHandlingStyle,
+            PlayerContractResponse contract,
+            PlayerValueResponse value,
+            CurrencyCode defaultCurrency,
+            List<CurrencyInfoResponse> availableCurrencies
     ) {
         return new PlayerDetailResponse(
                 player.getId(),
@@ -95,7 +107,12 @@ public record PlayerDetailResponse(
                 PlayerAttributeGroupResponse.from(attributes),
 
                 personality,
-                mediaHandlingStyle
+                mediaHandlingStyle,
+
+                contract,
+                value,
+                defaultCurrency,
+                availableCurrencies
         );
     }
 
