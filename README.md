@@ -40,7 +40,7 @@ This project is designed to practice and demonstrate:
 
 ## Current Status
 
-## Day 1
+## Day 1 Progress
 
 - Project folders created
 - Spring Boot backend initialized
@@ -48,7 +48,7 @@ This project is designed to practice and demonstrate:
 - MySQL database created
 - Backend health check endpoint added
 
-## Day 2
+## Day 2 Progress
 
 Implemented authentication foundation:
 - Created User entity and repository
@@ -192,3 +192,36 @@ Currency system:
 Transfer value:
 - Added estimated value in GBP as a placeholder.
 - Full transfer value calculation will be implemented later.
+
+## Day 7 Progress
+
+Built the first frontend version of the Football Manager style squad and player panel.
+
+Added:
+- App layout with sidebar and topbar
+- Squad page
+- Team tabs
+- Player list grouped by team
+- Player detail route
+- Football Manager style player header
+- Position panel with mini pitch
+- Attribute panels
+- Different outfield and goalkeeper layouts
+- Player info panel
+- Contract panel
+- Currency selector for transfer value display
+
+Current frontend routes:
+- `/squad`
+- `/players/:id`
+
+The player panel currently focuses on the main overview panel only. Relationships, playing history, full career stats, and advanced transfer value calculation are intentionally excluded from this version.
+
+Polish:
+- Removed unused player detail tabs.
+- Removed bottom panels that are outside the current project scope.
+- Added a contract modal opened from the Wage card.
+- Updated attribute ordering to match the Football Manager style panel.
+- Added currency conversion for contract wage and bonuses.
+- Changed the player header badge to show squad number instead of CA.
+- Added label-based display for reputation, languages, and foot ability.

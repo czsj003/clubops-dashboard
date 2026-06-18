@@ -1,9 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import AppLayout from "./components/layout/AppLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
+import Squad from "./pages/Squad";
+import PlayerDetail from "./pages/PlayerDetail";
 import "./App.css";
 
 function App() {
@@ -11,20 +13,21 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
           <Route path="/login" element={<Login />} />
-
           <Route path="/register" element={<Register />} />
 
           <Route
-            path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <AppLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route path="/" element={<Navigate to="/squad" replace />} />
+            <Route path="/dashboard" element={<Navigate to="/squad" replace />} />
+            <Route path="/squad" element={<Squad />} />
+            <Route path="/players/:id" element={<PlayerDetail />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>
