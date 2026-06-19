@@ -2,10 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import api from "../api/axios";
 import type { CurrencyCode, CurrencyInfo } from "../types/player";
 
 interface CurrencyContextValue {
@@ -28,6 +30,19 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [availableCurrencies, setAvailableCurrencies] = useState<CurrencyInfo[]>(
     []
   );
+
+  useEffect(() => {
+    async function loadCurrencies() {
+      try {
+        const response = await api.get<CurrencyInfo[]>("/currencies");
+        setAvailableCurrencies(response.data);
+      } catch {
+        setAvailableCurrencies([]);
+      }
+    }
+
+    loadCurrencies();
+  }, []);
 
   const setSelectedCurrency = useCallback((currency: CurrencyCode) => {
     localStorage.setItem("clubops_currency", currency);

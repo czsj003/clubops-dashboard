@@ -275,3 +275,34 @@ correction:
   - Goalkeeping attributes when applicable
   - Contract
 - Rebuilt developer edit mode into grouped attribute panels instead of raw JSON.
+
+## Day 9 Progress
+
+Added contracts, finance, and creation rules.
+
+Fixed:
+
+- Squad list no longer displays CA or PA.
+- Squad list now displays team status, value, and wage.
+- Facilities was removed from the app.
+
+Added:
+
+- Contracts page
+- Contract list API
+- Finance page
+- Finance summary API
+- Wage spending calculations
+- Weekly, monthly, and yearly wage summaries
+- Theoretical max wage cost including bonuses
+
+Player creation rules:
+
+- Attributes can be 0 during creation.
+- 0 means random.
+- Developer edit mode still does not allow 0, except non-goalkeeper goalkeeping attributes.
+- PA can never be lower than CA.
+- PA can be fixed, random, or negative potential.
+- Negative potential is only allowed for players under 22.
+- Players with CA 170 or higher cannot use negative potential.
+- Negative potential ranges must be able to produce PA greater than or equal to CA.

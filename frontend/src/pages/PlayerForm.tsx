@@ -114,6 +114,30 @@ const positionOptions: { value: PlayerPositionType; label: string }[] = [
   { value: "STRIKER", label: "Striker" },
 ];
 
+const negativePotentialOptions = [
+  "-10",
+  "-9.5",
+  "-9",
+  "-8.5",
+  "-8",
+  "-7.5",
+  "-7",
+  "-6.5",
+  "-6",
+  "-5.5",
+  "-5",
+  "-4.5",
+  "-4",
+  "-3.5",
+  "-3",
+  "-2.5",
+  "-2",
+  "-1.5",
+  "-1",
+];
+
+type PotentialMode = "FIXED" | "RANDOM" | "NEGATIVE";
+
 function PlayerForm() {
   const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
@@ -139,6 +163,9 @@ function PlayerForm() {
   const [wageAmount, setWageAmount] = useState(1000);
   const [squadNumber, setSquadNumber] = useState(30);
   const [releaseClauseAmount, setReleaseClauseAmount] = useState("");
+  const [potentialMode, setPotentialMode] =
+    useState<PotentialMode>("FIXED");
+  const [negativePotentialLevel, setNegativePotentialLevel] = useState("-8");
 
   const isGoalkeeper = mainPosition === "GOALKEEPER";
 
@@ -241,6 +268,9 @@ function PlayerForm() {
         },
         positions,
         attributes: finalAttributes,
+        potentialMode,
+        negativePotentialLevel:
+          potentialMode === "NEGATIVE" ? negativePotentialLevel : null,
         estimatedValueInGbp,
         contractStartDate,
         contractEndDate,
@@ -392,41 +422,85 @@ function PlayerForm() {
           </div>
         </FormSection>
 
+        <FormSection title="Ability and Potential Setup">
+          <Field label="Potential Mode">
+            <select
+              value={potentialMode}
+              onChange={(event) =>
+                setPotentialMode(event.target.value as PotentialMode)
+              }
+            >
+              <option value="FIXED">Fixed PA</option>
+              <option value="RANDOM">Random PA</option>
+              <option value="NEGATIVE">Negative Potential</option>
+            </select>
+          </Field>
+
+          {potentialMode === "NEGATIVE" && (
+            <Field label="Negative Potential Level">
+              <select
+                value={negativePotentialLevel}
+                onChange={(event) =>
+                  setNegativePotentialLevel(event.target.value)
+                }
+              >
+                {negativePotentialOptions.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+
+          <div className="form-help">
+            CA or PA can be set to 0 during creation. Zero means random.
+            Negative potential is only allowed for players under 22 and its
+            range must be able to produce PA greater than or equal to CA.
+          </div>
+        </FormSection>
+
         <AttributeSection
           title="Ability and Reputation"
           fields={abilityFields}
           attributes={attributes}
           onChange={updateAttribute}
+          allowZero
         />
         <AttributeSection
           title="Feet"
           fields={footFields}
           attributes={attributes}
           onChange={updateAttribute}
+          allowZero
         />
         <AttributeSection
           title="Personal Attributes"
           fields={personalFields}
           attributes={attributes}
           onChange={updateAttribute}
+          allowZero
         />
         <AttributeSection
           title="Mental Attributes"
           fields={mentalFields}
           attributes={attributes}
           onChange={updateAttribute}
+          allowZero
         />
         <AttributeSection
           title="Physical Attributes"
           fields={physicalFields}
           attributes={attributes}
           onChange={updateAttribute}
+          allowZero
         />
         <AttributeSection
           title="Technical Attributes"
           fields={technicalFields}
           attributes={attributes}
           onChange={updateAttribute}
+          allowZero
         />
         {isGoalkeeper && (
           <AttributeSection
@@ -434,6 +508,7 @@ function PlayerForm() {
             fields={goalkeepingFields}
             attributes={attributes}
             onChange={updateAttribute}
+            allowZero
           />
         )}
 
@@ -541,11 +616,13 @@ function AttributeSection({
   fields,
   attributes,
   onChange,
+  allowZero = false,
 }: {
   title: string;
   fields: string[];
   attributes: AttributeMap;
   onChange: (key: string, value: number) => void;
+  allowZero?: boolean;
 }) {
   return (
     <section className="form-section-card">
@@ -557,7 +634,7 @@ function AttributeSection({
             <input
               required
               type="number"
-              min={1}
+              min={allowZero ? 0 : 1}
               max={getMaxForAttribute(field)}
               value={attributes[field]}
               onChange={(event) =>

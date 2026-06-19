@@ -105,6 +105,35 @@ export interface PlayerContract {
     bonuses: ContractBonus[];
 }
 
+export interface ContractListItem {
+    playerId: number;
+    playerName: string;
+    teamName: string;
+    squadNumber: number | null;
+    startDate: string;
+    endDate: string;
+    contractType: PlayerContractType;
+    wageAmount: number;
+    wageCurrency: CurrencyCode;
+    wageDisplayPeriod: WageDisplayPeriod;
+    releaseClauseAmount: number | null;
+    releaseClauseCurrency: CurrencyCode | null;
+}
+
+export interface FinanceSummary {
+    baseCurrency: CurrencyCode;
+    weeklyBaseWage: number;
+    monthlyBaseWage: number;
+    yearlyBaseWage: number;
+    weeklyAutoBonusCost: number;
+    monthlyAutoBonusCost: number;
+    yearlyAutoBonusCost: number;
+    weeklyMaxCost: number;
+    monthlyMaxCost: number;
+    yearlyMaxCost: number;
+    playerCount: number;
+}
+
 export interface PlayerValue {
     estimatedValueInGbp: number | null;
     baseCurrency: CurrencyCode;

@@ -20,7 +20,6 @@ function Squad() {
     selectedCurrency,
     setSelectedCurrency,
     availableCurrencies,
-    setAvailableCurrencies,
     selectedRate,
   } = useCurrency();
 
@@ -31,16 +30,13 @@ function Squad() {
   useEffect(() => {
     async function loadSquadMetadata() {
       try {
-        const [clubResponse, teamsResponse, currencyResponse] =
-          await Promise.all([
-            api.get<Club>("/club"),
-            api.get<Team[]>("/teams"),
-            api.get("/currencies"),
-          ]);
+        const [clubResponse, teamsResponse] = await Promise.all([
+          api.get<Club>("/club"),
+          api.get<Team[]>("/teams"),
+        ]);
 
         setClub(clubResponse.data);
         setTeams(teamsResponse.data);
-        setAvailableCurrencies(currencyResponse.data);
       } catch {
         setError("Failed to load squad data.");
       } finally {
@@ -49,7 +45,7 @@ function Squad() {
     }
 
     loadSquadMetadata();
-  }, [setAvailableCurrencies]);
+  }, []);
 
   useEffect(() => {
     async function loadPlayers() {
@@ -217,8 +213,7 @@ function Squad() {
                     <span>Name</span>
                     <span>Age</span>
                     <span>Nat</span>
-                    <span>CA</span>
-                    <span>PA</span>
+                    <span>Team Status</span>
                     <span>Value</span>
                     <span>Wage</span>
                   </div>

@@ -9,6 +9,8 @@ import PlayerDetail from "./pages/PlayerDetail";
 import { CurrencyProvider } from "./context/CurrencyContext";
 import PlayerForm from "./pages/PlayerForm";
 import PlayerDeveloperEdit from "./pages/PlayerDeveloperEdit";
+import Contracts from "./pages/Contracts";
+import Finance from "./pages/Finance";
 import "./App.css";
 
 function App() {
@@ -31,6 +33,8 @@ function App() {
             <Route path="/" element={<Navigate to="/squad" replace />} />
             <Route path="/dashboard" element={<Navigate to="/squad" replace />} />
             <Route path="/squad" element={<Squad />} />
+            <Route path="/contracts" element={<Contracts />} />
+            <Route path="/finance" element={<Finance />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="/players/new" element={<PlayerForm />} />
             <Route path="/players/:id/dev" element={<PlayerDeveloperEdit />} />

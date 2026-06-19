@@ -1186,3 +1186,73 @@ button {
     grid-template-columns: 1fr 90px;
   }
 }
+
+.contract-table-header,
+.contract-table-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr 0.6fr 0.9fr 1.4fr 1fr 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.contract-table-header {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 0 14px 10px;
+}
+
+.contract-table-row {
+  background: var(--panel-2);
+  border: 1px solid transparent;
+  padding: 13px 14px;
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+
+.contract-table-row:hover {
+  border-color: var(--accent);
+  background: #202944;
+}
+
+.finance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.finance-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.finance-card span {
+  color: var(--muted);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.finance-card strong {
+  font-size: 28px;
+}
+
+.finance-card.highlight {
+  background: linear-gradient(135deg, #111827, #312e81);
+  border-color: rgba(139, 92, 246, 0.6);
+}
+
+@media (max-width: 1100px) {
+  .contract-table-header {
+    display: none;
+  }
+
+  .contract-table-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .finance-grid {
+    grid-template-columns: 1fr;
+  }
+}

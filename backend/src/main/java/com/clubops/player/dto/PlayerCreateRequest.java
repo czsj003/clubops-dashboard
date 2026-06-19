@@ -41,6 +41,8 @@ public record PlayerCreateRequest(
         Map<PlayerPositionType, Integer> positions,
 
         Map<String, Integer> attributes,
+        String potentialMode,
+        String negativePotentialLevel,
 
         BigDecimal estimatedValueInGbp,
 

@@ -67,6 +67,8 @@ class PlayerServiceValidationTests {
     private CurrencyService currencyService;
     @Mock
     private TeamRepository teamRepository;
+    @Mock
+    private PlayerAbilityResolver playerAbilityResolver;
 
     @InjectMocks
     private PlayerService playerService;
@@ -142,11 +144,29 @@ class PlayerServiceValidationTests {
         validate(request(positions, goalkeeperAttributes()));
     }
 
+    @Test
+    void creationZeroAttributesResolveWhileOutfieldGoalkeepingStaysZero() {
+        Map<String, Integer> attributes = baseAttributes();
+        attributes.put("pace", 0);
+        attributes.put("handling", 0);
+
+        ReflectionTestUtils.invokeMethod(
+                playerService,
+                "normalizeRandomCreationAttributes",
+                attributes,
+                false
+        );
+
+        assertThat(attributes.get("pace")).isBetween(1, 20);
+        assertThat(attributes.get("handling")).isZero();
+    }
+
     private void validate(PlayerCreateRequest request) {
         ReflectionTestUtils.invokeMethod(
                 playerService,
                 "validatePlayerRequest",
-                request
+                request,
+                false
         );
     }
 
@@ -188,6 +208,8 @@ class PlayerServiceValidationTests {
                 Map.of(LanguageCode.ENGLISH, 10),
                 positions,
                 attributes,
+                "FIXED",
+                null,
                 BigDecimal.valueOf(1_000_000),
                 LocalDate.of(2026, 7, 1),
                 LocalDate.of(2029, 6, 30),

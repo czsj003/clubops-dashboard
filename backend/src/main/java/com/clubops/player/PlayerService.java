@@ -75,6 +75,7 @@ public class PlayerService {
     private final ContractBonusRepository contractBonusRepository;
     private final CurrencyService currencyService;
     private final TeamRepository teamRepository;
+    private final PlayerAbilityResolver playerAbilityResolver;
 
     public List<PlayerListItemResponse> getCurrentUserPlayers(
             User user,
@@ -247,7 +248,7 @@ public class PlayerService {
 
     @Transactional
     public PlayerDetailResponse createPlayer(User user, PlayerCreateRequest request) {
-        validatePlayerRequest(request);
+        validatePlayerRequest(request, true);
 
         Club club = clubRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Club not found for current user"));
@@ -612,7 +613,7 @@ public class PlayerService {
 
     @Transactional
     public PlayerDetailResponse updatePlayer(User user, Long playerId, PlayerCreateRequest request) {
-        validatePlayerRequest(request);
+        validatePlayerRequest(request, false);
 
         Club club = clubRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Club not found for current user"));
@@ -752,7 +753,10 @@ public class PlayerService {
         return getCurrentUserPlayerDetail(user, player.getId());
     }
 
-    private void validatePlayerRequest(PlayerCreateRequest request) {
+    private void validatePlayerRequest(
+            PlayerCreateRequest request,
+            boolean isCreation
+    ) {
         if (request == null) {
             throw new IllegalArgumentException("Player request is required");
         }
@@ -785,11 +789,72 @@ public class PlayerService {
 
         validatePositionMap(request.positions());
         boolean isGoalkeeper = isGoalkeeperPositionMap(request.positions());
-        normalizeGoalkeepingAttributes(request.attributes(), isGoalkeeper);
-        validateDeveloperAttributes(request.attributes(), isGoalkeeper);
+
+        if (isCreation) {
+            normalizeRandomCreationAttributes(request.attributes(), isGoalkeeper);
+            playerAbilityResolver.resolve(
+                    request.dateOfBirth(),
+                    request.attributes(),
+                    request.potentialMode(),
+                    request.negativePotentialLevel()
+            );
+            normalizeGoalkeepingAttributes(request.attributes(), isGoalkeeper);
+            validateCreationAttributes(request.attributes(), isGoalkeeper);
+        } else {
+            normalizeGoalkeepingAttributes(request.attributes(), isGoalkeeper);
+            validateDeveloperAttributes(request.attributes(), isGoalkeeper);
+        }
+
         validateLanguages(request.languages());
         validateSecondaryNationalities(request);
         validateContract(request);
+    }
+
+    private void normalizeRandomCreationAttributes(
+            Map<String, Integer> attributes,
+            boolean isGoalkeeper
+    ) {
+        if (attributes == null) {
+            throw new IllegalArgumentException("Attributes are required");
+        }
+
+        for (Map.Entry<String, Integer> entry : attributes.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+
+            if (value == null) {
+                throw new IllegalArgumentException(key + " is required");
+            }
+
+            if (!isGoalkeeper && GOALKEEPING_ATTRIBUTE_KEYS.contains(key)) {
+                entry.setValue(0);
+                continue;
+            }
+
+            if (key.equals("currentAbility") || key.equals("potentialAbility")) {
+                continue;
+            }
+
+            if (value == 0) {
+                if (ABILITY_AND_REPUTATION_KEYS.contains(key)) {
+                    entry.setValue(random(1, 200));
+                } else {
+                    entry.setValue(random(1, 20));
+                }
+            }
+        }
+    }
+
+    private void validateCreationAttributes(
+            Map<String, Integer> attributes,
+            boolean isGoalkeeper
+    ) {
+        validateDeveloperAttributes(attributes, isGoalkeeper);
+    }
+
+    private int random(int min, int max) {
+        return java.util.concurrent.ThreadLocalRandom.current()
+                .nextInt(min, max + 1);
     }
 
     private void validateLanguages(Map<LanguageCode, Integer> languages) {

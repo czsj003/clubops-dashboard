@@ -17,9 +17,8 @@ function AppLayout() {
 
         <nav className="sidebar-nav">
           <NavLink to="/squad">Squad</NavLink>
-          <span className="nav-disabled">Contracts</span>
-          <span className="nav-disabled">Finance</span>
-          <span className="nav-disabled">Facilities</span>
+          <NavLink to="/contracts">Contracts</NavLink>
+          <NavLink to="/finance">Finance</NavLink>
         </nav>
       </aside>
 
