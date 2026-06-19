@@ -228,16 +228,35 @@ Polish:
 
 ## Day 8 Progress
 
-Added player management tools:
+Refined the app into a player-focused coach tool.
 
-- Player list search and filtering
-- Player creation API and form
-- Player update API and developer editor
+Added:
+- Player search
+- Team filter
+- Position filter
+- Nationality filter
+- Global currency selection
+- Currency persistence with localStorage
+- Currency conversion on Squad page
+- Currency conversion on Player page
+- Currency conversion in Contract modal
+- New player creation
 - Player deletion
-- Structured contract and attribute input
+- Developer edit mode
+- Hidden attribute editing in developer mode
 
-Day 8 correction:
+Scope change:
+- Staff management has been removed from the project scope.
+- The app now focuses on squad and player management for coaches.
 
+Important rules:
+- CA and PA are hidden attributes and are not shown on the main squad page.
+- Hidden attributes are only visible in developer edit mode.
+- Developer edit mode does not allow attributes to be 0.
+- In developer mode, normal attributes must be 1-20.
+- In developer mode, CA / PA / reputation values must be 1-200.
+
+correction:
 - Fixed developer-mode validation for goalkeeper attributes.
 - Outfield players now keep goalkeeping attributes at 0.
 - Outfield players do not show goalkeeping attributes in developer edit mode.
