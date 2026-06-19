@@ -225,3 +225,34 @@ Polish:
 - Added currency conversion for contract wage and bonuses.
 - Changed the player header badge to show squad number instead of CA.
 - Added label-based display for reputation, languages, and foot ability.
+
+## Day 8 Progress
+
+Added player management tools:
+
+- Player list search and filtering
+- Player creation API and form
+- Player update API and developer editor
+- Player deletion
+- Structured contract and attribute input
+
+Day 8 correction:
+
+- Fixed developer-mode validation for goalkeeper attributes.
+- Outfield players now keep goalkeeping attributes at 0.
+- Outfield players do not show goalkeeping attributes in developer edit mode.
+- Outfield players cannot be created or edited as natural goalkeepers unless their main position is Goalkeeper.
+- Goalkeeper players are locked to Goalkeeper as their natural position.
+- Goalkeeper attributes are only editable for goalkeeper players.
+- Rebuilt the player creation form into structured sections:
+  - Personal information
+  - Team and position
+  - Ability and reputation
+  - Feet
+  - Personal attributes
+  - Mental attributes
+  - Physical attributes
+  - Technical attributes
+  - Goalkeeping attributes when applicable
+  - Contract
+- Rebuilt developer edit mode into grouped attribute panels instead of raw JSON.

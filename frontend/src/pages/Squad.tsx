@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import api from "../api/axios";
 import type { Club, Team } from "../types/club";
 import type { PlayerListItem } from "../types/player";
-import { formatMoney, formatPosition } from "../utils/formatters";
+import { formatMoney } from "../utils/formatters";
+import { useCurrency } from "../context/CurrencyContext";
+import type { CurrencyCode, PlayerPositionType } from "../types/player";
+import { convertFromGbp } from "../utils/formatters";
 
 function Squad() {
   const [club, setClub] = useState<Club | null>(null);
@@ -13,27 +16,62 @@ function Squad() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const {
+    selectedCurrency,
+    setSelectedCurrency,
+    availableCurrencies,
+    setAvailableCurrencies,
+    selectedRate,
+  } = useCurrency();
+
+  const [search, setSearch] = useState("");
+  const [position, setPosition] = useState<PlayerPositionType | "">("");
+  const [nationality, setNationality] = useState("");
+
   useEffect(() => {
-    async function loadSquad() {
+    async function loadSquadMetadata() {
       try {
-        const [clubResponse, teamsResponse, playersResponse] = await Promise.all([
-          api.get<Club>("/club"),
-          api.get<Team[]>("/teams"),
-          api.get<PlayerListItem[]>("/players"),
-        ]);
+        const [clubResponse, teamsResponse, currencyResponse] =
+          await Promise.all([
+            api.get<Club>("/club"),
+            api.get<Team[]>("/teams"),
+            api.get("/currencies"),
+          ]);
 
         setClub(clubResponse.data);
         setTeams(teamsResponse.data);
-        setPlayers(playersResponse.data);
-      } catch (err) {
+        setAvailableCurrencies(currencyResponse.data);
+      } catch {
         setError("Failed to load squad data.");
       } finally {
         setLoading(false);
       }
     }
 
-    loadSquad();
-  }, []);
+    loadSquadMetadata();
+  }, [setAvailableCurrencies]);
+
+  useEffect(() => {
+    async function loadPlayers() {
+      const params = new URLSearchParams();
+
+      if (search.trim()) params.set("search", search.trim());
+      if (activeTeamId !== "ALL") params.set("teamId", String(activeTeamId));
+      if (position) params.set("position", position);
+      if (nationality) params.set("nationality", nationality);
+
+      try {
+        const response = await api.get<PlayerListItem[]>(
+          `/players?${params}`
+        );
+        setPlayers(response.data);
+      } catch {
+        setError("Failed to filter squad players.");
+      }
+    }
+
+    loadPlayers();
+  }, [search, activeTeamId, position, nationality]);
 
   const filteredPlayers = useMemo(() => {
     if (activeTeamId === "ALL") return players;
@@ -80,6 +118,61 @@ function Squad() {
             <span>Reputation</span>
           </div>
         </div>
+      </section>
+
+      <section className="squad-toolbar">
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search players..."
+        />
+
+        <select
+          value={position}
+          onChange={(event) => setPosition(event.target.value as PlayerPositionType | "")}
+        >
+          <option value="">All Positions</option>
+          <option value="GOALKEEPER">GK</option>
+          <option value="DEFENDER_LEFT">DL</option>
+          <option value="DEFENDER_CENTRAL">DC</option>
+          <option value="DEFENDER_RIGHT">DR</option>
+          <option value="DEFENSIVE_MIDFIELDER">DM</option>
+          <option value="MIDFIELDER_CENTRAL">MC</option>
+          <option value="ATTACKING_MIDFIELDER_CENTRAL">AMC</option>
+          <option value="STRIKER">ST</option>
+        </select>
+
+        <select
+          value={nationality}
+          onChange={(event) => setNationality(event.target.value)}
+        >
+          <option value="">All Nationalities</option>
+          <option value="ENGLAND">England</option>
+          <option value="PORTUGAL">Portugal</option>
+          <option value="FRANCE">France</option>
+          <option value="SPAIN">Spain</option>
+          <option value="GERMANY">Germany</option>
+          <option value="ITALY">Italy</option>
+          <option value="BRAZIL">Brazil</option>
+          <option value="ARGENTINA">Argentina</option>
+        </select>
+
+        <select
+          value={selectedCurrency}
+          onChange={(event) =>
+            setSelectedCurrency(event.target.value as CurrencyCode)
+          }
+        >
+          {availableCurrencies.map((currency) => (
+            <option key={currency.code} value={currency.code}>
+              {currency.code} - {currency.name}
+            </option>
+          ))}
+        </select>
+
+        <Link to="/players/new" className="new-player-button">
+          + New Player
+        </Link>
       </section>
 
       <section className="team-tabs">
@@ -138,20 +231,26 @@ function Squad() {
                     >
                       <span className="player-name-cell">
                         <strong>{player.displayName}</strong>
-                        <small>
-                          {player.isGoalkeeper ? "GK" : "Outfield"} ·{" "}
-                          {player.fullName}
-                        </small>
+                        <small>{player.fullName}</small>
                       </span>
 
                       <span>{player.age}</span>
                       <span>{player.nationality}</span>
-                      <span>{player.currentAbility}</span>
-                      <span>{player.potentialAbility}</span>
-                      <span>{formatMoney(player.estimatedValueInGbp, "GBP")}</span>
+                      <span>{player.teamName.replace(`${club?.name} `, "")}</span>
+
+                      <span>
+                        {formatMoney(
+                          convertFromGbp(player.estimatedValueInGbp, selectedRate),
+                          selectedCurrency
+                        )}
+                      </span>
+
                       <span>
                         {player.weeklyWage
-                          ? `${formatMoney(player.weeklyWage, player.wageCurrency ?? "GBP")} p/w`
+                          ? `${formatMoney(
+                            convertFromGbp(player.weeklyWage, selectedRate),
+                            selectedCurrency
+                          )} p/w`
                           : "N/A"}
                       </span>
                     </Link>

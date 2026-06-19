@@ -6,6 +6,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Squad from "./pages/Squad";
 import PlayerDetail from "./pages/PlayerDetail";
+import { CurrencyProvider } from "./context/CurrencyContext";
+import PlayerForm from "./pages/PlayerForm";
+import PlayerDeveloperEdit from "./pages/PlayerDeveloperEdit";
 import "./App.css";
 
 function App() {
@@ -19,7 +22,9 @@ function App() {
           <Route
             element={
               <ProtectedRoute>
-                <AppLayout />
+                <CurrencyProvider>
+                  <AppLayout />
+                </CurrencyProvider>
               </ProtectedRoute>
             }
           >
@@ -27,6 +32,8 @@ function App() {
             <Route path="/dashboard" element={<Navigate to="/squad" replace />} />
             <Route path="/squad" element={<Squad />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
+            <Route path="/players/new" element={<PlayerForm />} />
+            <Route path="/players/:id/dev" element={<PlayerDeveloperEdit />} />
           </Route>
         </Routes>
       </AuthProvider>

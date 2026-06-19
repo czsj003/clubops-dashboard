@@ -6,6 +6,7 @@ import ContractPanel from "../components/players/ContractPanel";
 import PlayerHeader from "../components/players/PlayerHeader";
 import PlayerInfoPanel from "../components/players/PlayerInfoPanel";
 import PositionPanel from "../components/players/PositionPanel";
+import { useCurrency } from "../context/CurrencyContext";
 import type {
     CurrencyCode,
     PlayerDetail as PlayerDetailType,
@@ -25,26 +26,38 @@ function PlayerDetail() {
     const { id } = useParams();
 
     const [player, setPlayer] = useState<PlayerDetailType | null>(null);
-    const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("GBP");
     const [showContract, setShowContract] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const {
+        selectedCurrency,
+        setSelectedCurrency,
+        setAvailableCurrencies,
+    } = useCurrency();
+
     useEffect(() => {
         async function loadPlayer() {
             try {
+                setLoading(true);
+                setError("");
+
                 const response = await api.get<PlayerDetailType>(`/players/${id}`);
+
                 setPlayer(response.data);
                 setSelectedCurrency(response.data.defaultCurrency);
-            } catch (err) {
+                setAvailableCurrencies(response.data.availableCurrencies);
+            } catch {
                 setError("Failed to load player detail.");
             } finally {
                 setLoading(false);
             }
         }
 
-        loadPlayer();
-    }, [id]);
+        if (id) {
+            loadPlayer();
+        }
+    }, [id, setSelectedCurrency, setAvailableCurrencies]);
 
     const selectedRate = useMemo(() => {
         if (!player) return 1;
@@ -85,6 +98,24 @@ function PlayerDetail() {
                         </option>
                     ))}
                 </select>
+
+                <Link to={`/players/${player.id}/dev`}>Developer Edit</Link>
+
+                <button
+                    className="danger-button"
+                    onClick={async () => {
+                        const confirmed = window.confirm(
+                            `Delete ${player.displayName} from the club?`
+                        );
+
+                        if (!confirmed) return;
+
+                        await api.delete(`/players/${player.id}`);
+                        window.location.href = "/squad";
+                    }}
+                >
+                    Delete Player
+                </button>
             </div>
 
             <PlayerHeader

@@ -21,7 +21,7 @@ function Dashboard() {
 
         setClub(clubResponse.data);
         setTeams(teamsResponse.data);
-      } catch (err) {
+      } catch {
         setError("Failed to load club dashboard data.");
       } finally {
         setLoading(false);

@@ -29,7 +29,7 @@ function Register() {
       });
 
       navigate("/dashboard");
-    } catch (err) {
+    } catch {
       setError("Registration failed. The email may already be registered.");
     }
   }

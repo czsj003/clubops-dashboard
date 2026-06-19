@@ -45,7 +45,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const response = await api.get<User>("/auth/me");
         setUser(response.data);
-      } catch (error) {
+      } catch {
         localStorage.removeItem("clubops_token");
         setToken(null);
         setUser(null);
@@ -95,6 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
 
