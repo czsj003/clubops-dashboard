@@ -1,6 +1,7 @@
 package com.clubops.auth.dto;
 
 import com.clubops.club.Country;
+import com.clubops.club.FootballLeague;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -19,6 +20,8 @@ public record RegisterRequest(
 
         String clubName,
 
-        Country country
+        Country country,
+        FootballLeague league,
+        String leagueGroup
 ) {
 }

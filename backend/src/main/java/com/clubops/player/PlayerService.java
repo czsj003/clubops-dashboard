@@ -19,6 +19,8 @@ import com.clubops.contract.ContractBonusRepository;
 import com.clubops.contract.ContractBonusType;
 import com.clubops.contract.PlayerContract;
 import com.clubops.contract.PlayerContractRepository;
+import com.clubops.contract.ReleaseClausePolicyService;
+import com.clubops.contract.ReleaseClauseRule;
 import com.clubops.contract.WageDisplayPeriod;
 import com.clubops.contract.dto.ContractBonusResponse;
 import com.clubops.contract.dto.PlayerContractResponse;
@@ -76,6 +78,7 @@ public class PlayerService {
     private final CurrencyService currencyService;
     private final TeamRepository teamRepository;
     private final PlayerAbilityResolver playerAbilityResolver;
+    private final ReleaseClausePolicyService releaseClausePolicyService;
 
     public List<PlayerListItemResponse> getCurrentUserPlayers(
             User user,
@@ -325,6 +328,20 @@ public class PlayerService {
             secondaryNationalityRepository.saveAll(secondaryNationalities);
         }
 
+        releaseClausePolicyService.validate(
+                club.getCountry(),
+                request.releaseClauseAmount()
+        );
+
+        BigDecimal releaseClauseAmount = request.releaseClauseAmount();
+        CurrencyCode releaseClauseCurrency = request.releaseClauseCurrency();
+
+        if (releaseClausePolicyService.getRule(club.getCountry())
+                == ReleaseClauseRule.FORBIDDEN) {
+            releaseClauseAmount = null;
+            releaseClauseCurrency = null;
+        }
+
         PlayerContract contract = PlayerContract.builder()
                 .player(savedPlayer)
                 .club(club)
@@ -336,8 +353,8 @@ public class PlayerService {
                 .wageAmount(request.wageAmount())
                 .wageCurrency(request.wageCurrency())
                 .wageDisplayPeriod(request.wageDisplayPeriod())
-                .releaseClauseAmount(request.releaseClauseAmount())
-                .releaseClauseCurrency(request.releaseClauseCurrency())
+                .releaseClauseAmount(releaseClauseAmount)
+                .releaseClauseCurrency(releaseClauseCurrency)
                 .build();
 
         PlayerContract savedContract = playerContractRepository.save(contract);
@@ -720,6 +737,20 @@ public class PlayerService {
         PlayerContract contract = playerContractRepository.findByPlayer(player)
                 .orElseThrow(() -> new RuntimeException("Contract not found"));
 
+        releaseClausePolicyService.validate(
+                club.getCountry(),
+                request.releaseClauseAmount()
+        );
+
+        BigDecimal releaseClauseAmount = request.releaseClauseAmount();
+        CurrencyCode releaseClauseCurrency = request.releaseClauseCurrency();
+
+        if (releaseClausePolicyService.getRule(club.getCountry())
+                == ReleaseClauseRule.FORBIDDEN) {
+            releaseClauseAmount = null;
+            releaseClauseCurrency = null;
+        }
+
         contract.setTeam(team);
         contract.setSquadNumber(request.squadNumber());
         contract.setStartDate(request.contractStartDate());
@@ -728,8 +759,8 @@ public class PlayerService {
         contract.setWageAmount(request.wageAmount());
         contract.setWageCurrency(request.wageCurrency());
         contract.setWageDisplayPeriod(request.wageDisplayPeriod());
-        contract.setReleaseClauseAmount(request.releaseClauseAmount());
-        contract.setReleaseClauseCurrency(request.releaseClauseCurrency());
+        contract.setReleaseClauseAmount(releaseClauseAmount);
+        contract.setReleaseClauseCurrency(releaseClauseCurrency);
 
         playerContractRepository.save(contract);
 

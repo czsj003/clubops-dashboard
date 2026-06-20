@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
-import type { PlayerDetail } from "../types/player";
+import type {
+  PlayerDetail,
+  ReleaseClausePolicy,
+  ReleaseClauseRule,
+} from "../types/player";
 import {
   abilityFields,
   footFields,
@@ -22,13 +26,19 @@ function PlayerDeveloperEdit() {
   const navigate = useNavigate();
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [attributes, setAttributes] = useState<AttributeMap>({});
+  const [releaseClauseRule, setReleaseClauseRule] =
+    useState<ReleaseClauseRule>("OPTIONAL");
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadPlayer() {
       try {
-        const response = await api.get<PlayerDetail>(`/players/${id}`);
+        const [response, policyResponse] = await Promise.all([
+          api.get<PlayerDetail>(`/players/${id}`),
+          api.get<ReleaseClausePolicy>("/contracts/release-clause-policy"),
+        ]);
         setPlayer(response.data);
+        setReleaseClauseRule(policyResponse.data.rule);
 
         const flatAttributes: AttributeMap = {
           ...response.data.attributes.ability,
@@ -128,8 +138,14 @@ function PlayerDeveloperEdit() {
           wageCurrency: player.contract.wageCurrency,
           wageDisplayPeriod: player.contract.wageDisplayPeriod,
           squadNumber: player.contract.squadNumber,
-          releaseClauseAmount: player.contract.releaseClauseAmount,
-          releaseClauseCurrency: player.contract.releaseClauseCurrency,
+          releaseClauseAmount:
+            releaseClauseRule === "FORBIDDEN"
+              ? null
+              : player.contract.releaseClauseAmount,
+          releaseClauseCurrency:
+            releaseClauseRule === "FORBIDDEN"
+              ? null
+              : player.contract.releaseClauseCurrency,
         },
       });
 

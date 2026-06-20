@@ -306,3 +306,39 @@ Player creation rules:
 - Negative potential is only allowed for players under 22.
 - Players with CA 170 or higher cannot use negative potential.
 - Negative potential ranges must be able to produce PA greater than or equal to CA.
+
+## Day 10 Progress
+
+Implemented club setup by country and league.
+
+Supported club countries:
+
+- England, Spain, Italy, Germany, France
+- Portugal, Netherlands, Belgium, Turkey
+- Saudi Arabia, China, USA, Brazil, Argentina
+
+Registration now provides country-specific league choices and league groups.
+The backend validates that the selected league belongs to the country and that
+grouped leagues receive a valid group.
+
+Default teams are created from each country's football structure:
+
+- England: First Team, U21, U18
+- Spain: First Team, B Team, U19
+- Italy: First Team, U20, U18
+- Germany: First Team, II Team, U19
+- France: First Team, Second Team, U19
+- Portugal: First Team, B Team, U19
+- Netherlands: First Team, Second Team, U19
+- Belgium: First Team, B Team, U18
+- Turkey: First Team, U19
+- Saudi Arabia: First Team, Reserve Team, U19
+- China: First Team, U21, U19
+- USA: First Team
+- Brazil and Argentina: First Team, Reserve Team, U20
+
+Release clause rules:
+
+- Spain, Portugal, Brazil, and Argentina require release clauses.
+- France forbids release clauses.
+- Other supported countries allow optional release clauses.

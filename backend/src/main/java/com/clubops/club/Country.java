@@ -5,5 +5,14 @@ public enum Country {
     SPAIN,
     ITALY,
     GERMANY,
-    FRANCE
+    FRANCE,
+    PORTUGAL,
+    NETHERLANDS,
+    BELGIUM,
+    TURKEY,
+    SAUDI_ARABIA,
+    CHINA,
+    USA,
+    BRAZIL,
+    ARGENTINA
 }

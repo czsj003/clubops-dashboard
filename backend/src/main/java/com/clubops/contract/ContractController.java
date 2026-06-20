@@ -1,7 +1,10 @@
 package com.clubops.contract;
 
+import com.clubops.club.Club;
+import com.clubops.club.ClubRepository;
 import com.clubops.contract.dto.ContractListItemResponse;
 import com.clubops.contract.dto.PlayerContractResponse;
+import com.clubops.contract.dto.ReleaseClausePolicyResponse;
 import com.clubops.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,12 +21,26 @@ import java.util.List;
 public class ContractController {
 
     private final ContractService contractService;
+    private final ClubRepository clubRepository;
+    private final ReleaseClausePolicyService releaseClausePolicyService;
 
     @GetMapping
     public List<ContractListItemResponse> getContracts(
             @AuthenticationPrincipal User user
     ) {
         return contractService.getCurrentUserContracts(user);
+    }
+
+    @GetMapping("/release-clause-policy")
+    public ReleaseClausePolicyResponse getReleaseClausePolicy(
+            @AuthenticationPrincipal User user
+    ) {
+        Club club = clubRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Club not found"));
+
+        return new ReleaseClausePolicyResponse(
+                releaseClausePolicyService.getRule(club.getCountry())
+        );
     }
 
     @GetMapping("/{playerId}")

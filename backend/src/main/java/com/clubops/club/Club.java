@@ -30,8 +30,12 @@ public class Club {
     @Column(nullable = false)
     private Country country;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String league;
+    private FootballLeague league;
+
+    @Column(name = "league_group")
+    private String leagueGroup;
 
     @Column(nullable = false)
     private String season;

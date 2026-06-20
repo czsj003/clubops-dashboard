@@ -3,7 +3,11 @@ import type { FormEvent, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import type { Team } from "../types/club";
-import type { PlayerPositionType } from "../types/player";
+import type {
+  PlayerPositionType,
+  ReleaseClausePolicy,
+  ReleaseClauseRule,
+} from "../types/player";
 import {
   abilityFields,
   footFields,
@@ -163,6 +167,8 @@ function PlayerForm() {
   const [wageAmount, setWageAmount] = useState(1000);
   const [squadNumber, setSquadNumber] = useState(30);
   const [releaseClauseAmount, setReleaseClauseAmount] = useState("");
+  const [releaseClauseRule, setReleaseClauseRule] =
+    useState<ReleaseClauseRule>("OPTIONAL");
   const [potentialMode, setPotentialMode] =
     useState<PotentialMode>("FIXED");
   const [negativePotentialLevel, setNegativePotentialLevel] = useState("-8");
@@ -172,9 +178,13 @@ function PlayerForm() {
   useEffect(() => {
     async function loadTeams() {
       try {
-        const response = await api.get<Team[]>("/teams");
-        setTeams(response.data);
-        setTeamId(response.data[0]?.id ?? "");
+        const [teamsResponse, policyResponse] = await Promise.all([
+          api.get<Team[]>("/teams"),
+          api.get<ReleaseClausePolicy>("/contracts/release-clause-policy"),
+        ]);
+        setTeams(teamsResponse.data);
+        setTeamId(teamsResponse.data[0]?.id ?? "");
+        setReleaseClauseRule(policyResponse.data.rule);
       } catch {
         setError("Failed to load teams.");
       }
@@ -237,6 +247,14 @@ function PlayerForm() {
       return;
     }
 
+    if (
+      releaseClauseRule === "REQUIRED"
+      && (!releaseClauseAmount || Number(releaseClauseAmount) <= 0)
+    ) {
+      setError("Release clause is required for this club country.");
+      return;
+    }
+
     try {
       const finalAttributes = { ...attributes };
 
@@ -279,10 +297,18 @@ function PlayerForm() {
         wageCurrency: "GBP",
         wageDisplayPeriod: "WEEKLY",
         squadNumber,
-        releaseClauseAmount: releaseClauseAmount
-          ? Number(releaseClauseAmount)
-          : null,
-        releaseClauseCurrency: releaseClauseAmount ? "GBP" : null,
+        releaseClauseAmount:
+          releaseClauseRule === "FORBIDDEN"
+            ? null
+            : releaseClauseAmount
+              ? Number(releaseClauseAmount)
+              : null,
+        releaseClauseCurrency:
+          releaseClauseRule === "FORBIDDEN"
+            ? null
+            : releaseClauseAmount
+              ? "GBP"
+              : null,
       });
 
       navigate(`/players/${response.data.id}`);
@@ -568,15 +594,35 @@ function PlayerForm() {
               }
             />
           </Field>
-          <Field label="Release Clause GBP">
-            <input
-              min={0}
-              type="number"
-              value={releaseClauseAmount}
-              onChange={(event) => setReleaseClauseAmount(event.target.value)}
-              placeholder="Optional"
-            />
-          </Field>
+          {releaseClauseRule !== "FORBIDDEN" && (
+            <Field
+              label={
+                releaseClauseRule === "REQUIRED"
+                  ? "Release Clause GBP Required"
+                  : "Release Clause GBP Optional"
+              }
+            >
+              <input
+                min={0}
+                type="number"
+                value={releaseClauseAmount}
+                onChange={(event) => setReleaseClauseAmount(event.target.value)}
+                placeholder={
+                  releaseClauseRule === "REQUIRED" ? "Required" : "Optional"
+                }
+              />
+            </Field>
+          )}
+          {releaseClauseRule === "FORBIDDEN" && (
+            <div className="form-help">
+              Release clauses are forbidden for clubs in this country.
+            </div>
+          )}
+          {releaseClauseRule === "REQUIRED" && (
+            <div className="form-help">
+              Release clauses are required for clubs in this country.
+            </div>
+          )}
         </FormSection>
 
         <div className="form-actions">

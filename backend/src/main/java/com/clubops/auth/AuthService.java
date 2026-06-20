@@ -6,6 +6,8 @@ import com.clubops.auth.dto.RegisterRequest;
 import com.clubops.club.Club;
 import com.clubops.club.ClubRepository;
 import com.clubops.club.Country;
+import com.clubops.club.FootballLeague;
+import com.clubops.club.LeagueOptionService;
 import com.clubops.security.JwtService;
 import com.clubops.team.Team;
 import com.clubops.team.TeamRepository;
@@ -30,6 +32,7 @@ public class AuthService {
     private final ClubRepository clubRepository;
     private final TeamRepository teamRepository;
     private final TeamSystemFactory teamSystemFactory;
+    private final LeagueOptionService leagueOptionService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -54,6 +57,13 @@ public class AuthService {
                 ? request.country()
                 : Country.ENGLAND;
 
+        FootballLeague league = request.league() != null
+                ? request.league()
+                : defaultLeagueForCountry(country);
+
+        String leagueGroup = request.leagueGroup();
+        leagueOptionService.validateLeagueSelection(country, league, leagueGroup);
+
         String clubName = request.clubName() != null && !request.clubName().isBlank()
                 ? request.clubName().trim()
                 : "Northbridge FC";
@@ -62,7 +72,8 @@ public class AuthService {
                 .user(savedUser)
                 .name(clubName)
                 .country(country)
-                .league(defaultLeagueForCountry(country))
+                .league(league)
+                .leagueGroup(leagueGroup)
                 .season("2026/2027")
                 .reputation(70)
                 .build();
@@ -101,13 +112,22 @@ public class AuthService {
         );
     }
 
-    private String defaultLeagueForCountry(Country country) {
+    private FootballLeague defaultLeagueForCountry(Country country) {
         return switch (country) {
-            case ENGLAND -> "Championship";
-            case SPAIN -> "LaLiga 2";
-            case GERMANY -> "2. Bundesliga";
-            case ITALY -> "Serie B";
-            case FRANCE -> "Ligue 2";
+            case ENGLAND -> FootballLeague.EFL_CHAMPIONSHIP;
+            case SPAIN -> FootballLeague.LA_LIGA_2;
+            case ITALY -> FootballLeague.SERIE_B;
+            case GERMANY -> FootballLeague.BUNDESLIGA_2;
+            case FRANCE -> FootballLeague.LIGUE_2;
+            case PORTUGAL -> FootballLeague.LIGA_PORTUGAL_2;
+            case NETHERLANDS -> FootballLeague.EERSTE_DIVISIE;
+            case BELGIUM -> FootballLeague.CHALLENGER_PRO_LEAGUE;
+            case TURKEY -> FootballLeague.TFF_1_LIG;
+            case SAUDI_ARABIA -> FootballLeague.SAUDI_FIRST_DIVISION;
+            case CHINA -> FootballLeague.CHINA_LEAGUE_ONE;
+            case USA -> FootballLeague.MLS;
+            case BRAZIL -> FootballLeague.BRASILEIRAO_SERIE_B;
+            case ARGENTINA -> FootballLeague.ARGENTINA_PRIMERA_NACIONAL;
         };
     }
 }

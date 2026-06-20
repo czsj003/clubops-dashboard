@@ -8,9 +8,6 @@ public record ClubUpdateRequest(
         @NotBlank(message = "Club name is required")
         String name,
 
-        @NotBlank(message = "League is required")
-        String league,
-
         @NotBlank(message = "Season is required")
         String season,
 

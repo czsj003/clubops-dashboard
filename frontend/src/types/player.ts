@@ -43,6 +43,12 @@ export type PlayerContractType =
 
 export type WageDisplayPeriod = "WEEKLY" | "MONTHLY" | "YEARLY";
 
+export type ReleaseClauseRule = "REQUIRED" | "OPTIONAL" | "FORBIDDEN";
+
+export interface ReleaseClausePolicy {
+    rule: ReleaseClauseRule;
+}
+
 export interface PlayerListItem {
     id: number;
     displayName: string;

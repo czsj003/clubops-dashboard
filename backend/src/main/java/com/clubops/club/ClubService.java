@@ -26,7 +26,6 @@ public class ClubService {
                 .orElseThrow(() -> new RuntimeException("Club not found for current user"));
 
         club.setName(request.name());
-        club.setLeague(request.league());
         club.setSeason(request.season());
         club.setReputation(request.reputation());
 

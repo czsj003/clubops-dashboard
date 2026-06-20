@@ -7,6 +7,11 @@ import { formatMoney } from "../utils/formatters";
 import { useCurrency } from "../context/CurrencyContext";
 import type { CurrencyCode, PlayerPositionType } from "../types/player";
 import { convertFromGbp } from "../utils/formatters";
+import {
+  formatCountry,
+  formatLeague,
+  formatLeagueGroup,
+} from "../utils/leagueOptions";
 
 function Squad() {
   const [club, setClub] = useState<Club | null>(null);
@@ -96,7 +101,12 @@ function Squad() {
           <p className="eyebrow">Squad Overview</p>
           <h1>{club?.name}</h1>
           <p>
-            {club?.country} · {club?.league} · {club?.season}
+            {club && formatCountry(club.country)} ·{" "}
+            {club && formatLeague(club.league)}
+            {club?.leagueGroup
+              ? ` ${formatLeagueGroup(club.leagueGroup)}`
+              : ""}{" "}
+            · {club?.season}
           </p>
         </div>
 

@@ -2,7 +2,11 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import type { Country } from "../types/auth";
+import type { Country, FootballLeague } from "../types/auth";
+import {
+  countryOptions,
+  leagueOptionsByCountry,
+} from "../utils/leagueOptions";
 
 function Register() {
   const navigate = useNavigate();
@@ -13,7 +17,14 @@ function Register() {
   const [password, setPassword] = useState("123456");
   const [clubName, setClubName] = useState("Northbridge FC");
   const [country, setCountry] = useState<Country>("ENGLAND");
+  const [league, setLeague] =
+    useState<FootballLeague>("EFL_CHAMPIONSHIP");
+  const [leagueGroup, setLeagueGroup] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+  const leagueOptions = leagueOptionsByCountry[country];
+  const selectedLeague = leagueOptions.find((option) => option.value === league);
+  const groupOptions = selectedLeague?.groups ?? [];
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -26,6 +37,8 @@ function Register() {
         password,
         clubName,
         country,
+        league,
+        leagueGroup,
       });
 
       navigate("/dashboard");
@@ -84,26 +97,63 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label>Country System</label>
+            <label>Country</label>
             <select
               value={country}
-              onChange={(event) => setCountry(event.target.value as Country)}
+              onChange={(event) => {
+                const nextCountry = event.target.value as Country;
+                const nextLeagues = leagueOptionsByCountry[nextCountry];
+
+                setCountry(nextCountry);
+                setLeague(nextLeagues[0].value);
+                setLeagueGroup(nextLeagues[0].groups?.[0]?.value ?? null);
+              }}
             >
-              <option value="ENGLAND">England - First Team, U21, U18</option>
-              <option value="SPAIN" disabled>
-                Spain - Coming later
-              </option>
-              <option value="ITALY" disabled>
-                Italy - Coming later
-              </option>
-              <option value="GERMANY" disabled>
-                Germany - Coming later
-              </option>
-              <option value="FRANCE" disabled>
-                France - Coming later
-              </option>
+              {countryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
+
+          <div className="form-group">
+            <label>League</label>
+            <select
+              value={league}
+              onChange={(event) => {
+                const nextLeague = event.target.value as FootballLeague;
+                const nextLeagueOption = leagueOptions.find(
+                  (option) => option.value === nextLeague
+                );
+
+                setLeague(nextLeague);
+                setLeagueGroup(nextLeagueOption?.groups?.[0]?.value ?? null);
+              }}
+            >
+              {leagueOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {groupOptions.length > 0 && (
+            <div className="form-group">
+              <label>League Group</label>
+              <select
+                value={leagueGroup ?? ""}
+                onChange={(event) => setLeagueGroup(event.target.value)}
+              >
+                {groupOptions.map((group) => (
+                  <option key={group.value} value={group.value}>
+                    {group.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <button type="submit">Register</button>
         </form>

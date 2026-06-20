@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import type { Club, Team } from "../types/club";
+import { formatCountry, formatLeague } from "../utils/leagueOptions";
 
 function Dashboard() {
   const { user, logout } = useAuth();
@@ -51,7 +52,7 @@ function Dashboard() {
           <section className="card">
             <h2>{club.name}</h2>
             <p>Country System: {formatCountry(club.country)}</p>
-            <p>League: {club.league}</p>
+            <p>League: {formatLeague(club.league)}</p>
             <p>Season: {club.season}</p>
             <p>Reputation: {club.reputation}/100</p>
           </section>
@@ -78,37 +79,24 @@ function Dashboard() {
   );
 }
 
-function formatCountry(country: Club["country"]) {
-  switch (country) {
-    case "ENGLAND":
-      return "England";
-    case "SPAIN":
-      return "Spain";
-    case "GERMANY":
-      return "Germany";
-    case "ITALY":
-      return "Italy";
-    case "FRANCE":
-      return "France";
-    default:
-      return country;
-  }
-}
-
 function formatTeamType(type: Team["type"]) {
   switch (type) {
     case "FIRST_TEAM":
       return "First Team";
     case "U21":
       return "U21";
+    case "U20":
+      return "U20";
+    case "U19":
+      return "U19";
     case "U18":
       return "U18";
     case "B_TEAM":
       return "B Team";
-    case "U23":
-      return "U23";
-    case "U19":
-      return "U19";
+    case "SECOND_TEAM":
+      return "Second Team";
+    case "II_TEAM":
+      return "II Team";
     case "RESERVE_TEAM":
       return "Reserve Team";
     default:
