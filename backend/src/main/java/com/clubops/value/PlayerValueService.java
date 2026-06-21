@@ -16,8 +16,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PlayerValueService {
 
-    private static final BigDecimal TALENT_WEIGHT = new BigDecimal("0.85");
-    private static final BigDecimal MARKET_WEIGHT = new BigDecimal("0.15");
     private static final BigDecimal MINIMUM_VALUE = new BigDecimal("25000");
     private static final BigDecimal MAXIMUM_VALUE = new BigDecimal("300000000");
 
@@ -40,24 +38,19 @@ public class PlayerValueService {
                 .map(this::convertBandToGbp)
                 .orElseGet(() -> reputationMarketAnchor(reputation));
 
-        BigDecimal currentAbilityValue = currentAbilityValue(
-                attributes.getCurrentAbility()
-        );
+        BigDecimal establishedValue = marketAnchor
+                .multiply(currentAbilityMultiplier(attributes.getCurrentAbility()))
+                .multiply(establishedAgeMultiplier(player.getAge()));
         BigDecimal potentialValue = potentialValue(
                 attributes.getCurrentAbility(),
                 attributes.getPotentialAbility(),
                 player.getAge()
         );
 
-        BigDecimal talentValue = currentAbilityValue
+        BigDecimal finalValue = establishedValue
                 .add(potentialValue)
-                .multiply(ageMarketMultiplier(player.getAge()))
-                .multiply(reputationMultiplier(reputation))
                 .multiply(positionMultiplier(positions))
                 .multiply(versatilityMultiplier(positions));
-
-        BigDecimal finalValue = talentValue.multiply(TALENT_WEIGHT)
-                .add(marketAnchor.multiply(MARKET_WEIGHT));
 
         return roundToNearestThousand(clamp(finalValue));
     }
@@ -70,10 +63,9 @@ public class PlayerValueService {
         return (int) Math.round(weighted);
     }
 
-    private BigDecimal currentAbilityValue(int ca) {
-        double normalized = Math.max(ca, 1) / 100.0;
-        double value = 7_000_000.0 * Math.pow(normalized, 3.25);
-        return BigDecimal.valueOf(value);
+    private BigDecimal currentAbilityMultiplier(int ca) {
+        double multiplier = Math.pow(Math.max(ca, 1) / 130.0, 2.20);
+        return BigDecimal.valueOf(Math.max(0.30, Math.min(multiplier, 3.20)));
     }
 
     private BigDecimal potentialValue(int ca, int pa, int age) {
@@ -93,7 +85,7 @@ public class PlayerValueService {
         double potentialQuality = 0.55 + (pa / 200.0) * 0.65;
         double caReadiness = 0.55 + (ca / 200.0) * 0.45;
         double value = Math.pow(gap, 1.55)
-                * 20_000.0
+                * 24_000.0
                 * ageDevelopmentFactor
                 * potentialQuality
                 * caReadiness;
@@ -101,21 +93,15 @@ public class PlayerValueService {
         return BigDecimal.valueOf(value);
     }
 
-    private BigDecimal ageMarketMultiplier(int age) {
-        if (age <= 18) return new BigDecimal("1.08");
-        if (age <= 21) return new BigDecimal("1.15");
-        if (age <= 24) return new BigDecimal("1.12");
-        if (age <= 27) return new BigDecimal("1.05");
-        if (age <= 29) return BigDecimal.ONE;
-        if (age <= 31) return new BigDecimal("0.88");
-        if (age <= 33) return new BigDecimal("0.70");
-        if (age <= 35) return new BigDecimal("0.52");
-        return new BigDecimal("0.34");
-    }
-
-    private BigDecimal reputationMultiplier(int reputation) {
-        double multiplier = 0.68 + (reputation / 200.0) * 0.62;
-        return BigDecimal.valueOf(multiplier);
+    private BigDecimal establishedAgeMultiplier(int age) {
+        if (age <= 18) return new BigDecimal("1.05");
+        if (age <= 21) return new BigDecimal("1.04");
+        if (age <= 24) return new BigDecimal("1.02");
+        if (age <= 30) return BigDecimal.ONE;
+        if (age <= 32) return new BigDecimal("0.88");
+        if (age <= 34) return new BigDecimal("0.70");
+        if (age <= 36) return new BigDecimal("0.52");
+        return new BigDecimal("0.35");
     }
 
     private BigDecimal positionMultiplier(
@@ -131,20 +117,20 @@ public class PlayerValueService {
 
     private BigDecimal positionMultiplier(PlayerPositionType position) {
         return switch (position) {
-            case STRIKER -> new BigDecimal("1.18");
+            case STRIKER -> new BigDecimal("1.10");
             case ATTACKING_MIDFIELDER_LEFT,
                  ATTACKING_MIDFIELDER_CENTRAL,
-                 ATTACKING_MIDFIELDER_RIGHT -> new BigDecimal("1.12");
+                 ATTACKING_MIDFIELDER_RIGHT -> new BigDecimal("1.08");
             case MIDFIELDER_LEFT,
                  MIDFIELDER_CENTRAL,
                  MIDFIELDER_RIGHT,
-                 DEFENSIVE_MIDFIELDER -> new BigDecimal("1.05");
+                 DEFENSIVE_MIDFIELDER -> new BigDecimal("1.04");
             case WING_BACK_LEFT,
-                 WING_BACK_RIGHT -> new BigDecimal("0.98");
+                 WING_BACK_RIGHT -> new BigDecimal("0.99");
             case DEFENDER_LEFT,
                  DEFENDER_CENTRAL,
-                 DEFENDER_RIGHT -> new BigDecimal("0.93");
-            case GOALKEEPER -> new BigDecimal("0.82");
+                 DEFENDER_RIGHT -> new BigDecimal("0.97");
+            case GOALKEEPER -> new BigDecimal("0.88");
         };
     }
 

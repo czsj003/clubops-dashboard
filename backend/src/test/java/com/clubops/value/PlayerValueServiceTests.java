@@ -27,10 +27,35 @@ class PlayerValueServiceTests {
             new PlayerValueService(repository, new CurrencyService());
 
     @Test
-    void eliteTeenageProspectIsNotCappedByALowDatabaseBand() {
-        Player player = player(19);
+    void maturePlayerWithoutPotentialStaysCloseToDatabaseBand() {
+        Player player = player(30);
+        PlayerAttribute attributes = attributes(130, 130, 130, 130, 130);
+        PlayerValueBand band = band(BigDecimal.valueOf(5_000_000));
+
+        when(repository.findMatchingBand(
+                Country.ENGLAND,
+                FootballLeague.EFL_CHAMPIONSHIP,
+                130
+        )).thenReturn(Optional.of(band));
+
+        BigDecimal value = service.calculateValueInGbp(
+                player,
+                attributes,
+                Map.of(PlayerPositionType.MIDFIELDER_CENTRAL, 20)
+        );
+
+        assertThat(value)
+                .isBetween(
+                        BigDecimal.valueOf(5_000_000),
+                        BigDecimal.valueOf(5_500_000)
+                );
+    }
+
+    @Test
+    void eliteTeenageProspectAddsLargePotentialPremiumToDatabaseBand() {
+        Player player = player(18);
         PlayerAttribute attributes = attributes(130, 185, 130, 130, 100);
-        PlayerValueBand band = band(BigDecimal.valueOf(2_000_000));
+        PlayerValueBand band = band(BigDecimal.valueOf(5_000_000));
 
         when(repository.findMatchingBand(
                 Country.ENGLAND,
@@ -44,7 +69,11 @@ class PlayerValueServiceTests {
                 Map.of(PlayerPositionType.STRIKER, 20)
         );
 
-        assertThat(value).isGreaterThan(BigDecimal.valueOf(25_000_000));
+        assertThat(value)
+                .isBetween(
+                        BigDecimal.valueOf(20_000_000),
+                        BigDecimal.valueOf(25_000_000)
+                );
     }
 
     @Test
@@ -152,7 +181,7 @@ class PlayerValueServiceTests {
                 Map.of(PlayerPositionType.DEFENDER_CENTRAL, 20)
         );
 
-        assertThat(value).isGreaterThan(BigDecimal.valueOf(5_000_000));
+        assertThat(value).isGreaterThan(BigDecimal.valueOf(2_000_000));
     }
 
     private BigDecimal value(
