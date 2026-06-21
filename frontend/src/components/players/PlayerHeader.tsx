@@ -22,7 +22,7 @@ function PlayerHeader({
   const mainPositions = player.positions
     .filter((position) => position.rating === 20)
     .map((position) => formatPosition(position.positionType))
-    .join(", ");
+    .join(" / ");
 
   const convertedValue = convertFromGbp(
     player.value?.estimatedValueInGbp,

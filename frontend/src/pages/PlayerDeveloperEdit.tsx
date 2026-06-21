@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import type {
   PlayerDetail,
+  PlayerPositionType,
   ReleaseClausePolicy,
   ReleaseClauseRule,
 } from "../types/player";
@@ -18,6 +19,10 @@ import {
   physicalFields,
   technicalFields,
 } from "../utils/playerAttributeFields";
+import {
+  createPositionRatings,
+  positionOptions,
+} from "../utils/playerPositions";
 
 type AttributeMap = Record<string, number>;
 
@@ -26,6 +31,9 @@ function PlayerDeveloperEdit() {
   const navigate = useNavigate();
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [attributes, setAttributes] = useState<AttributeMap>({});
+  const [positionRatings, setPositionRatings] = useState<
+    Record<PlayerPositionType, number>
+  >(() => createPositionRatings());
   const [releaseClauseRule, setReleaseClauseRule] =
     useState<ReleaseClauseRule>("OPTIONAL");
   const [error, setError] = useState("");
@@ -39,6 +47,12 @@ function PlayerDeveloperEdit() {
         ]);
         setPlayer(response.data);
         setReleaseClauseRule(policyResponse.data.rule);
+
+        const loadedPositions = createPositionRatings();
+        response.data.positions.forEach((position) => {
+          loadedPositions[position.positionType] = position.rating;
+        });
+        setPositionRatings(loadedPositions);
 
         const flatAttributes: AttributeMap = {
           ...response.data.attributes.ability,
@@ -75,6 +89,54 @@ function PlayerDeveloperEdit() {
     }));
   }
 
+  function updatePositionRating(
+    position: PlayerPositionType,
+    value: number
+  ) {
+    if (player?.isGoalkeeper) {
+      return;
+    }
+
+    const nextIsGoalkeeper = position === "GOALKEEPER" && value === 20;
+    const becomesOutfield = position !== "GOALKEEPER" && value === 20;
+
+    setPositionRatings((current) => {
+      const next = { ...current, [position]: value };
+
+      if (nextIsGoalkeeper) {
+        positionOptions.forEach((option) => {
+          if (option.value !== "GOALKEEPER") {
+            next[option.value] = 1;
+          }
+        });
+      }
+
+      if (becomesOutfield) {
+        next.GOALKEEPER = 1;
+      }
+
+      return next;
+    });
+
+    if (nextIsGoalkeeper) {
+      setAttributes((current) => {
+        const next = { ...current };
+        goalkeepingFields.forEach((field) => {
+          next[field] = next[field] > 0 ? next[field] : 10;
+        });
+        return next;
+      });
+    } else if (becomesOutfield || position === "GOALKEEPER") {
+      setAttributes((current) => {
+        const next = { ...current };
+        goalkeepingFields.forEach((field) => {
+          next[field] = 0;
+        });
+        return next;
+      });
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -84,21 +146,16 @@ function PlayerDeveloperEdit() {
       return;
     }
 
+    const isEditingGoalkeeper = positionRatings.GOALKEEPER === 20;
+
     try {
       const finalAttributes = { ...attributes };
 
-      if (!player.isGoalkeeper) {
+      if (!isEditingGoalkeeper) {
         goalkeepingFields.forEach((field) => {
           finalAttributes[field] = 0;
         });
       }
-
-      const positions = Object.fromEntries(
-        player.positions.map((position) => [
-          position.positionType,
-          position.rating,
-        ])
-      );
 
       const languages = Object.fromEntries(
         player.languages.map((language) => [
@@ -128,9 +185,9 @@ function PlayerDeveloperEdit() {
             (item) => item.countryCode
           ),
           languages,
-          positions,
+          positions: positionRatings,
           attributes: finalAttributes,
-          estimatedValueInGbp: player.value?.estimatedValueInGbp ?? 0,
+          estimatedValueInGbp: null,
           contractStartDate: player.contract.startDate,
           contractEndDate: player.contract.endDate,
           contractType: player.contract.contractType,
@@ -169,6 +226,8 @@ function PlayerDeveloperEdit() {
     );
   }
 
+  const isEditingGoalkeeper = positionRatings.GOALKEEPER === 20;
+
   return (
     <main className="content-page">
       <div className="form-page-header">
@@ -194,7 +253,7 @@ function PlayerDeveloperEdit() {
         values.
       </div>
 
-      {!player.isGoalkeeper && (
+      {!isEditingGoalkeeper && (
         <div className="developer-warning subtle">
           This is an outfield player. Goalkeeping attributes are locked at 0
           and are not shown here.
@@ -204,6 +263,44 @@ function PlayerDeveloperEdit() {
       {error && <div className="error-message">{error}</div>}
 
       <form className="player-form" onSubmit={handleSubmit}>
+        <section className="form-section-card">
+          <h2>Positions</h2>
+
+          <div className="form-help">
+            {player.isGoalkeeper
+              ? "Existing goalkeepers are locked to Goalkeeper = 20."
+              : "Outfield players may have multiple natural positions rated 20. Setting Goalkeeper to 20 locks every outfield position to 1."}
+          </div>
+
+          <div className="position-editor-grid">
+            {positionOptions.map((position) => {
+              const locked =
+                player.isGoalkeeper
+                || (isEditingGoalkeeper && position.value !== "GOALKEEPER");
+
+              return (
+                <label key={position.value} className="position-editor-row">
+                  <span>{position.label}</span>
+                  <input
+                    required
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={positionRatings[position.value]}
+                    disabled={locked}
+                    onChange={(event) =>
+                      updatePositionRating(
+                        position.value,
+                        Number(event.target.value)
+                      )
+                    }
+                  />
+                </label>
+              );
+            })}
+          </div>
+        </section>
+
         <AttributeSection
           title="Ability and Reputation"
           fields={abilityFields}
@@ -240,7 +337,7 @@ function PlayerDeveloperEdit() {
           attributes={attributes}
           onChange={updateAttribute}
         />
-        {player.isGoalkeeper && (
+        {isEditingGoalkeeper && (
           <AttributeSection
             title="Goalkeeping Attributes"
             fields={goalkeepingFields}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -19,6 +19,10 @@ import {
   physicalFields,
   technicalFields,
 } from "../utils/playerAttributeFields";
+import {
+  createPositionRatings,
+  positionOptions,
+} from "../utils/playerPositions";
 
 type AttributeMap = Record<string, number>;
 
@@ -92,32 +96,6 @@ const defaultAttributes: AttributeMap = {
   throwing: 0,
 };
 
-const positionOptions: { value: PlayerPositionType; label: string }[] = [
-  { value: "GOALKEEPER", label: "Goalkeeper" },
-  { value: "DEFENDER_LEFT", label: "Defender Left" },
-  { value: "DEFENDER_CENTRAL", label: "Defender Central" },
-  { value: "DEFENDER_RIGHT", label: "Defender Right" },
-  { value: "DEFENSIVE_MIDFIELDER", label: "Defensive Midfielder" },
-  { value: "WING_BACK_LEFT", label: "Wing-Back Left" },
-  { value: "WING_BACK_RIGHT", label: "Wing-Back Right" },
-  { value: "MIDFIELDER_LEFT", label: "Midfielder Left" },
-  { value: "MIDFIELDER_CENTRAL", label: "Midfielder Central" },
-  { value: "MIDFIELDER_RIGHT", label: "Midfielder Right" },
-  {
-    value: "ATTACKING_MIDFIELDER_LEFT",
-    label: "Attacking Midfielder Left",
-  },
-  {
-    value: "ATTACKING_MIDFIELDER_CENTRAL",
-    label: "Attacking Midfielder Central",
-  },
-  {
-    value: "ATTACKING_MIDFIELDER_RIGHT",
-    label: "Attacking Midfielder Right",
-  },
-  { value: "STRIKER", label: "Striker" },
-];
-
 const negativePotentialOptions = [
   "-10",
   "-9.5",
@@ -156,11 +134,11 @@ function PlayerForm() {
   const [nationality, setNationality] = useState("ENGLAND");
   const [heightCm, setHeightCm] = useState(180);
   const [weightKg, setWeightKg] = useState(75);
-  const [mainPosition, setMainPosition] =
-    useState<PlayerPositionType>("STRIKER");
+  const [positionRatings, setPositionRatings] = useState<
+    Record<PlayerPositionType, number>
+  >(() => createPositionRatings("STRIKER"));
   const [attributes, setAttributes] =
     useState<AttributeMap>(defaultAttributes);
-  const [estimatedValueInGbp, setEstimatedValueInGbp] = useState(1_000_000);
   const [contractStartDate, setContractStartDate] = useState("2026-07-01");
   const [contractEndDate, setContractEndDate] = useState("2029-06-30");
   const [contractType, setContractType] = useState("FULL_TIME");
@@ -173,7 +151,7 @@ function PlayerForm() {
     useState<PotentialMode>("FIXED");
   const [negativePotentialLevel, setNegativePotentialLevel] = useState("-8");
 
-  const isGoalkeeper = mainPosition === "GOALKEEPER";
+  const isGoalkeeper = positionRatings.GOALKEEPER === 20;
 
   useEffect(() => {
     async function loadTeams() {
@@ -221,15 +199,37 @@ function PlayerForm() {
     setFullName(`${firstName} ${value}`.trim());
   }
 
-  function updateMainPosition(value: PlayerPositionType) {
-    setMainPosition(value);
-    updateGoalkeepingAttributes(value === "GOALKEEPER");
-  }
+  function updatePositionRating(
+    position: PlayerPositionType,
+    value: number
+  ) {
+    const nextIsGoalkeeper = position === "GOALKEEPER" && value === 20;
+    const becomesOutfield = position !== "GOALKEEPER" && value === 20;
 
-  const positions = useMemo<Record<string, number>>(
-    () => ({ [mainPosition]: 20 }),
-    [mainPosition]
-  );
+    if (nextIsGoalkeeper) {
+      updateGoalkeepingAttributes(true);
+    } else if (becomesOutfield || position === "GOALKEEPER") {
+      updateGoalkeepingAttributes(false);
+    }
+
+    setPositionRatings((current) => {
+      const next = { ...current, [position]: value };
+
+      if (nextIsGoalkeeper) {
+        positionOptions.forEach((option) => {
+          if (option.value !== "GOALKEEPER") {
+            next[option.value] = 1;
+          }
+        });
+      }
+
+      if (becomesOutfield) {
+        next.GOALKEEPER = 1;
+      }
+
+      return next;
+    });
+  }
 
   function updateAttribute(key: string, value: number) {
     setAttributes((current) => ({
@@ -284,12 +284,12 @@ function PlayerForm() {
         languages: {
           ENGLISH: 10,
         },
-        positions,
+        positions: positionRatings,
         attributes: finalAttributes,
         potentialMode,
         negativePotentialLevel:
           potentialMode === "NEGATIVE" ? negativePotentialLevel : null,
-        estimatedValueInGbp,
+        estimatedValueInGbp: null,
         contractStartDate,
         contractEndDate,
         contractType,
@@ -413,7 +413,7 @@ function PlayerForm() {
           </Field>
         </FormSection>
 
-        <FormSection title="Team and Position">
+        <FormSection title="Team and Positions">
           <Field label="Team">
             <select
               required
@@ -427,24 +427,37 @@ function PlayerForm() {
               ))}
             </select>
           </Field>
-          <Field label="Main Position">
-            <select
-              value={mainPosition}
-              onChange={(event) =>
-                updateMainPosition(event.target.value as PlayerPositionType)
-              }
-            >
-              {positionOptions.map((position) => (
-                <option key={position.value} value={position.value}>
-                  {position.label}
-                </option>
-              ))}
-            </select>
-          </Field>
           <div className="form-help">
             {isGoalkeeper
-              ? "Goalkeeper players are locked to Goalkeeper = 20."
-              : "Outfield players cannot have Goalkeeper = 20. Goalkeeping attributes are set to 0."}
+              ? "Goalkeepers are locked to Goalkeeper = 20 and all outfield positions = 1."
+              : "Outfield players may have multiple natural positions rated 20."}
+          </div>
+
+          <div className="position-editor-grid">
+            {positionOptions.map((position) => {
+              const locked =
+                isGoalkeeper && position.value !== "GOALKEEPER";
+
+              return (
+                <label key={position.value} className="position-editor-row">
+                  <span>{position.label}</span>
+                  <input
+                    required
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={positionRatings[position.value]}
+                    disabled={locked}
+                    onChange={(event) =>
+                      updatePositionRating(
+                        position.value,
+                        Number(event.target.value)
+                      )
+                    }
+                  />
+                </label>
+              );
+            })}
           </div>
         </FormSection>
 
@@ -584,16 +597,10 @@ function PlayerForm() {
               onChange={(event) => setSquadNumber(Number(event.target.value))}
             />
           </Field>
-          <Field label="Estimated Value GBP">
-            <input
-              min={0}
-              type="number"
-              value={estimatedValueInGbp}
-              onChange={(event) =>
-                setEstimatedValueInGbp(Number(event.target.value))
-              }
-            />
-          </Field>
+          <div className="form-help">
+            Market value is calculated automatically from the configured value
+            bands, age, CA, PA, and world reputation.
+          </div>
           {releaseClauseRule !== "FORBIDDEN" && (
             <Field
               label={

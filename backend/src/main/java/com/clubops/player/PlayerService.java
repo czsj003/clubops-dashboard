@@ -36,6 +36,7 @@ import com.clubops.player.dto.PlayerValueResponse;
 import com.clubops.user.User;
 import com.clubops.team.Team;
 import com.clubops.team.TeamRepository;
+import com.clubops.value.PlayerValueService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -79,6 +80,7 @@ public class PlayerService {
     private final TeamRepository teamRepository;
     private final PlayerAbilityResolver playerAbilityResolver;
     private final ReleaseClausePolicyService releaseClausePolicyService;
+    private final PlayerValueService playerValueService;
 
     public List<PlayerListItemResponse> getCurrentUserPlayers(
             User user,
@@ -197,7 +199,7 @@ public class PlayerService {
         PlayerValueResponse valueResponse = new PlayerValueResponse(
                 player.getEstimatedValueInGbp(),
                 CurrencyCode.GBP,
-                false
+                true
         );
 
         return PlayerDetailResponse.from(
@@ -280,13 +282,17 @@ public class PlayerService {
                 .birthCity(request.birthCity())
                 .birthCountry(request.birthCountry())
                 .nationality(request.nationality())
-                .estimatedValueInGbp(request.estimatedValueInGbp())
                 .build();
 
         Player savedPlayer = playerRepository.save(player);
 
         PlayerAttribute attributes = buildAttributes(savedPlayer, request.attributes());
-        playerAttributeRepository.save(attributes);
+        PlayerAttribute savedAttributes = playerAttributeRepository.save(attributes);
+
+        savedPlayer.setEstimatedValueInGbp(
+                playerValueService.calculateValueInGbp(savedPlayer, savedAttributes)
+        );
+        playerRepository.save(savedPlayer);
 
         List<PlayerPosition> positions = request.positions()
                 .entrySet()
@@ -558,39 +564,35 @@ public class PlayerService {
             }
         }
 
-        boolean hasTwenty = positions.values()
-                .stream()
-                .anyMatch(value -> value == 20);
-
-        if (!hasTwenty) {
-            throw new IllegalArgumentException("At least one position must be rated 20");
-        }
-
         boolean isGoalkeeper = isGoalkeeperPositionMap(positions);
 
         if (isGoalkeeper) {
-            for (Map.Entry<PlayerPositionType, Integer> entry : positions.entrySet()) {
-                PlayerPositionType type = entry.getKey();
-                Integer value = entry.getValue();
-
-                if (type == PlayerPositionType.GOALKEEPER && value != 20) {
-                    throw new IllegalArgumentException("Goalkeeper must be rated 20");
-                }
-
-                if (type != PlayerPositionType.GOALKEEPER && value != 1) {
-                    throw new IllegalArgumentException(
-                            "If Goalkeeper is 20, all other positions must be 1"
+            boolean invalidOutfieldPosition = positions.entrySet()
+                    .stream()
+                    .anyMatch(entry ->
+                            entry.getKey() != PlayerPositionType.GOALKEEPER
+                                    && entry.getValue() != 1
                     );
-                }
-            }
-        } else {
-            Integer goalkeeperRating = positions.get(PlayerPositionType.GOALKEEPER);
 
-            if (Integer.valueOf(20).equals(goalkeeperRating)) {
+            if (invalidOutfieldPosition) {
                 throw new IllegalArgumentException(
-                        "Outfield players cannot have Goalkeeper rated 20"
+                        "Goalkeepers cannot have outfield positions above 1"
                 );
             }
+            return;
+        }
+
+        boolean hasNaturalOutfieldPosition = positions.entrySet()
+                .stream()
+                .anyMatch(entry ->
+                        entry.getKey() != PlayerPositionType.GOALKEEPER
+                                && entry.getValue() == 20
+                );
+
+        if (!hasNaturalOutfieldPosition) {
+            throw new IllegalArgumentException(
+                    "Outfield players must have at least one outfield position rated 20"
+            );
         }
     }
 
@@ -675,8 +677,6 @@ public class PlayerService {
         player.setBirthCity(request.birthCity());
         player.setBirthCountry(request.birthCountry());
         player.setNationality(request.nationality());
-        player.setEstimatedValueInGbp(request.estimatedValueInGbp());
-
         playerRepository.save(player);
 
         PlayerAttribute oldAttributes = playerAttributeRepository.findByPlayer(player)
@@ -684,7 +684,14 @@ public class PlayerService {
 
         playerAttributeRepository.delete(oldAttributes);
         playerAttributeRepository.flush();
-        playerAttributeRepository.save(buildAttributes(player, request.attributes()));
+        PlayerAttribute updatedAttributes = playerAttributeRepository.save(
+                buildAttributes(player, request.attributes())
+        );
+
+        player.setEstimatedValueInGbp(
+                playerValueService.calculateValueInGbp(player, updatedAttributes)
+        );
+        playerRepository.save(player);
 
         playerPositionRepository.deleteAll(playerPositionRepository.findByPlayer(player));
         playerPositionRepository.flush();
@@ -813,11 +820,6 @@ public class PlayerService {
         if (request.nationality() == null) {
             throw new IllegalArgumentException("Nationality is required");
         }
-        if (request.estimatedValueInGbp() != null
-                && request.estimatedValueInGbp().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Estimated value cannot be negative");
-        }
-
         validatePositionMap(request.positions());
         boolean isGoalkeeper = isGoalkeeperPositionMap(request.positions());
 

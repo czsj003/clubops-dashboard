@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Period;
 import java.math.BigDecimal;
 
 @Entity
@@ -120,5 +121,9 @@ public class Player {
         } else {
             this.displayName = this.firstName + " " + this.lastName;
         }
+    }
+
+    public int getAge() {
+        return Period.between(dateOfBirth, LocalDate.now()).getYears();
     }
 }

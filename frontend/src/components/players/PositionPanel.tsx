@@ -13,7 +13,7 @@ function PositionPanel({ positions, isGoalkeeper }: PositionPanelProps) {
     const naturalPositions = sortedPositions
         .filter((position) => position.rating === 20)
         .map((position) => formatPosition(position.positionType))
-        .join(", ");
+        .join(" / ");
 
     return (
         <section className="fm-panel position-panel">

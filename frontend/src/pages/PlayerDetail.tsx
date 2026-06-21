@@ -6,6 +6,7 @@ import ContractPanel from "../components/players/ContractPanel";
 import PlayerHeader from "../components/players/PlayerHeader";
 import PlayerInfoPanel from "../components/players/PlayerInfoPanel";
 import PositionPanel from "../components/players/PositionPanel";
+import GoalkeeperSidePanel from "../components/players/GoalkeeperSidePanel";
 import { useCurrency } from "../context/CurrencyContext";
 import type {
     CurrencyCode,
@@ -14,8 +15,6 @@ import type {
 import {
     goalkeeperMentalOrder,
     goalkeeperOrder,
-    goalkeeperPhysicalOrder,
-    goalkeeperTechnicalOrder,
     mentalOrder,
     outfieldSetPiecesOrder,
     outfieldTechnicalOrder,
@@ -155,17 +154,7 @@ function PlayerDetail() {
                             keys={goalkeeperMentalOrder}
                         />
 
-                        <AttributePanel
-                            title="Physical"
-                            attributes={player.attributes.physical}
-                            keys={goalkeeperPhysicalOrder}
-                        />
-
-                        <AttributePanel
-                            title="Technical"
-                            attributes={player.attributes.technical}
-                            keys={goalkeeperTechnicalOrder}
-                        />
+                        <GoalkeeperSidePanel player={player} />
                     </>
                 ) : (
                     <>

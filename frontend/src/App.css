@@ -464,7 +464,7 @@ button {
 }
 
 .player-panel-grid.goalkeeper {
-  grid-template-columns: 1.2fr 1.15fr 1.15fr 1.15fr 1.15fr 1.25fr;
+  grid-template-columns: 1.2fr 1.15fr 1.15fr 1.15fr 1.25fr;
 }
 
 .fm-panel {
@@ -812,6 +812,198 @@ button {
   color: var(--muted);
   font-size: 13px;
   font-weight: 800;
+}
+
+.goalkeeper-side-panel .attribute-subtitle {
+  margin-top: 14px;
+}
+
+.outfield-rating-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--panel-2);
+  border-radius: 8px;
+  padding: 9px 10px;
+}
+
+.position-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+.position-editor-row {
+  display: grid;
+  grid-template-columns: 1fr 76px;
+  gap: 8px;
+  align-items: center;
+  background: var(--panel-2);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.position-editor-row input {
+  width: 100%;
+  background: #0b1020;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.position-editor-row input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.value-band-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 18px;
+  padding: 15px 18px;
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 14px;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.value-band-guide span {
+  color: var(--muted);
+}
+
+.value-band-error {
+  margin-bottom: 18px;
+}
+
+.value-band-workspace {
+  margin-bottom: 20px;
+}
+
+.value-band-filter {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.4fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.value-band-filter label,
+.value-band-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.value-band-filter label span,
+.value-band-form label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.value-band-filter select,
+.value-band-form input,
+.value-band-form select {
+  width: 100%;
+  background: #0b1020;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.value-band-form {
+  display: grid;
+  grid-template-columns: 0.8fr 0.8fr 1.2fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.value-band-form-actions,
+.value-band-row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.value-band-form button,
+.value-band-row button {
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
+.value-band-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.value-band-form .secondary-button {
+  background: var(--panel-3);
+  border: 1px solid var(--border);
+}
+
+.value-band-row .danger-button {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+}
+
+.value-band-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.value-band-table-header,
+.value-band-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.7fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.value-band-table-header {
+  padding: 0 12px 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.value-band-row {
+  background: var(--panel-2);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+@media (max-width: 1000px) {
+  .value-band-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .position-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .value-band-filter,
+  .value-band-form {
+    grid-template-columns: 1fr;
+  }
+
+  .value-band-table-header {
+    display: none;
+  }
+
+  .value-band-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .position-name {

@@ -342,3 +342,45 @@ Release clause rules:
 - Spain, Portugal, Brazil, and Argentina require release clauses.
 - France forbids release clauses.
 - Other supported countries allow optional release clauses.
+
+## Day 11 Progress
+
+Added multi-position support, a goalkeeper-specific overview, and the first
+database-backed player value system.
+
+Position changes:
+
+- Outfield players can have multiple natural positions rated 20.
+- Outfield players must have at least one outfield position rated 20.
+- Goalkeepers are locked to Goalkeeper 20 and outfield positions 1.
+- Player creation and developer edit expose every position rating.
+- Multiple natural positions display as `AML / AMR`.
+
+Goalkeeper overview:
+
+- Goalkeeping and mental attributes remain dedicated panels.
+- Physical, selected technical attributes, and outfield rating share a compact
+  goalkeeper side panel.
+
+Player value system:
+
+- Added the empty `player_value_bands` database table.
+- Each row stores country, league, world-reputation range, base value, and
+  currency.
+- Final value adjusts the matching base value by age, CA, PA, and reputation.
+- A fallback formula is used when no database band matches.
+- Player value is recalculated after player creation and developer updates.
+- Overlapping reputation ranges for the same country and league are rejected.
+
+### Where to enter player value data
+
+Run the app, sign in, and open **Value Database** in the left sidebar.
+The direct frontend route is:
+
+```text
+http://localhost:5173/value-bands
+```
+
+Select a country and league, then enter non-overlapping world-reputation
+ranges from 1 to 200. Records can be added, edited, or deleted in the same
+screen. No country value data is preloaded.

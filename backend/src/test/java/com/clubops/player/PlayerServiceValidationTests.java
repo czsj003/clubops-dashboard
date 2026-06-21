@@ -25,6 +25,7 @@ import com.clubops.currency.CurrencyCode;
 import com.clubops.currency.CurrencyService;
 import com.clubops.player.dto.PlayerCreateRequest;
 import com.clubops.team.TeamRepository;
+import com.clubops.value.PlayerValueService;
 
 @ExtendWith(MockitoExtension.class)
 class PlayerServiceValidationTests {
@@ -69,6 +70,8 @@ class PlayerServiceValidationTests {
     private TeamRepository teamRepository;
     @Mock
     private PlayerAbilityResolver playerAbilityResolver;
+    @Mock
+    private PlayerValueService playerValueService;
 
     @InjectMocks
     private PlayerService playerService;
@@ -130,7 +133,32 @@ class PlayerServiceValidationTests {
 
         assertThatThrownBy(() -> validate(request(positions, attributes)))
                 .hasMessage(
-                        "If Goalkeeper is 20, all other positions must be 1"
+                        "Goalkeepers cannot have outfield positions above 1"
+                );
+    }
+
+    @Test
+    void outfieldPlayersCanHaveMultipleNaturalPositions() {
+        Map<PlayerPositionType, Integer> positions = Map.of(
+                PlayerPositionType.ATTACKING_MIDFIELDER_LEFT, 20,
+                PlayerPositionType.ATTACKING_MIDFIELDER_RIGHT, 20,
+                PlayerPositionType.STRIKER, 15,
+                PlayerPositionType.GOALKEEPER, 1
+        );
+
+        validate(request(positions, baseAttributes()));
+    }
+
+    @Test
+    void outfieldPlayersRequireAtLeastOneNaturalOutfieldPosition() {
+        Map<PlayerPositionType, Integer> positions = Map.of(
+                PlayerPositionType.STRIKER, 19,
+                PlayerPositionType.GOALKEEPER, 1
+        );
+
+        assertThatThrownBy(() -> validate(request(positions, baseAttributes())))
+                .hasMessage(
+                        "Outfield players must have at least one outfield position rated 20"
                 );
     }
 

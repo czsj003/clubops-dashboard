@@ -19,6 +19,7 @@ function AppLayout() {
           <NavLink to="/squad">Squad</NavLink>
           <NavLink to="/contracts">Contracts</NavLink>
           <NavLink to="/finance">Finance</NavLink>
+          <NavLink to="/value-bands">Value Database</NavLink>
         </nav>
       </aside>
 
