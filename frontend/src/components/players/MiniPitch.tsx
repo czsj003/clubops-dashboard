@@ -58,7 +58,7 @@ function getDotClass(rating: number) {
     if (rating === 20) return "natural";
     if (rating >= 15) return "strong";
     if (rating >= 10) return "ok";
-    if (rating >= 1) return "weak";
+    if (rating >= 2) return "weak";
     return "none";
 }
 

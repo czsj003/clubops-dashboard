@@ -589,6 +589,11 @@ button {
   background: #7f1d1d;
 }
 
+.pitch-dot.none {
+  background: #0f172a;
+  box-shadow: none;
+}
+
 .role-list {
   display: flex;
   flex-direction: column;

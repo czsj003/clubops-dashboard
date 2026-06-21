@@ -82,6 +82,7 @@ public class PlayerService {
     private final ReleaseClausePolicyService releaseClausePolicyService;
     private final PlayerValueService playerValueService;
 
+    @Transactional
     public List<PlayerListItemResponse> getCurrentUserPlayers(
             User user,
             String search,
@@ -126,6 +127,7 @@ public class PlayerService {
 
                     List<PlayerPosition> positions = playerPositionRepository.findByPlayer(player);
                     boolean isGoalkeeper = isGoalkeeper(positions);
+                    refreshEstimatedValue(player, attributes, positions);
 
                     PlayerContract contract = playerContractRepository.findByPlayer(player)
                             .orElse(null);
@@ -145,6 +147,7 @@ public class PlayerService {
                 .toList();
     }
 
+    @Transactional
     public PlayerDetailResponse getCurrentUserPlayerDetail(User user, Long playerId) {
         Club club = clubRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Club not found for current user"));
@@ -162,6 +165,7 @@ public class PlayerService {
         List<PlayerPosition> positions = playerPositionRepository.findByPlayer(player);
 
         validatePositionRules(positions);
+        refreshEstimatedValue(player, attributes, positions);
 
         boolean isGoalkeeper = isGoalkeeper(positions);
 
@@ -289,11 +293,6 @@ public class PlayerService {
         PlayerAttribute attributes = buildAttributes(savedPlayer, request.attributes());
         PlayerAttribute savedAttributes = playerAttributeRepository.save(attributes);
 
-        savedPlayer.setEstimatedValueInGbp(
-                playerValueService.calculateValueInGbp(savedPlayer, savedAttributes)
-        );
-        playerRepository.save(savedPlayer);
-
         List<PlayerPosition> positions = request.positions()
                 .entrySet()
                 .stream()
@@ -306,6 +305,15 @@ public class PlayerService {
 
         validatePositionRules(positions);
         playerPositionRepository.saveAll(positions);
+
+        savedPlayer.setEstimatedValueInGbp(
+                playerValueService.calculateValueInGbp(
+                        savedPlayer,
+                        savedAttributes,
+                        request.positions()
+                )
+        );
+        playerRepository.save(savedPlayer);
 
         if (request.languages() != null) {
             List<PlayerLanguage> languages = request.languages()
@@ -521,6 +529,30 @@ public class PlayerService {
         }
     }
 
+    private void refreshEstimatedValue(
+            Player player,
+            PlayerAttribute attributes,
+            List<PlayerPosition> positions
+    ) {
+        Map<PlayerPositionType, Integer> positionRatings = positions.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        PlayerPosition::getPositionType,
+                        PlayerPosition::getRating
+                ));
+
+        BigDecimal recalculatedValue = playerValueService.calculateValueInGbp(
+                player,
+                attributes,
+                positionRatings
+        );
+
+        if (player.getEstimatedValueInGbp() == null
+                || player.getEstimatedValueInGbp().compareTo(recalculatedValue) != 0) {
+            player.setEstimatedValueInGbp(recalculatedValue);
+            playerRepository.save(player);
+        }
+    }
+
     private boolean isGoalkeeperPositionMap(Map<PlayerPositionType, Integer> positions) {
         if (positions == null) {
             return false;
@@ -688,11 +720,6 @@ public class PlayerService {
                 buildAttributes(player, request.attributes())
         );
 
-        player.setEstimatedValueInGbp(
-                playerValueService.calculateValueInGbp(player, updatedAttributes)
-        );
-        playerRepository.save(player);
-
         playerPositionRepository.deleteAll(playerPositionRepository.findByPlayer(player));
         playerPositionRepository.flush();
 
@@ -708,6 +735,15 @@ public class PlayerService {
 
         validatePositionRules(newPositions);
         playerPositionRepository.saveAll(newPositions);
+
+        player.setEstimatedValueInGbp(
+                playerValueService.calculateValueInGbp(
+                        player,
+                        updatedAttributes,
+                        request.positions()
+                )
+        );
+        playerRepository.save(player);
 
         playerLanguageRepository.deleteAll(playerLanguageRepository.findByPlayer(player));
         playerLanguageRepository.flush();
