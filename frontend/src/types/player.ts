@@ -1,5 +1,33 @@
-import type { Country } from "./auth";
 import type { TeamType } from "./club";
+
+export type CountryCode =
+    | "ENGLAND"
+    | "SCOTLAND"
+    | "WALES"
+    | "NORTHERN_IRELAND"
+    | "IRELAND"
+    | "FRANCE"
+    | "SPAIN"
+    | "GERMANY"
+    | "ITALY"
+    | "PORTUGAL"
+    | "NETHERLANDS"
+    | "BELGIUM"
+    | "TURKEY"
+    | "SAUDI_ARABIA"
+    | "BRAZIL"
+    | "ARGENTINA"
+    | "USA"
+    | "CANADA"
+    | "MEXICO"
+    | "JAPAN"
+    | "SOUTH_KOREA"
+    | "CHINA"
+    | "NIGERIA"
+    | "GHANA"
+    | "SENEGAL"
+    | "MOROCCO"
+    | "OTHER";
 
 export type CurrencyCode =
     | "GBP"
@@ -54,7 +82,7 @@ export interface PlayerListItem {
     displayName: string;
     fullName: string;
     age: number;
-    nationality: Country;
+    nationality: CountryCode;
     teamId: number;
     teamName: string;
     currentAbility: number;
@@ -77,7 +105,7 @@ export interface PlayerLanguage {
 }
 
 export interface PlayerSecondaryNationality {
-    countryCode: Country;
+    countryCode: CountryCode;
 }
 
 export interface CurrencyInfo {
@@ -178,8 +206,8 @@ export interface PlayerDetail {
     weightKg: number;
 
     birthCity: string;
-    birthCountry: Country;
-    nationality: Country;
+    birthCountry: CountryCode;
+    nationality: CountryCode;
     secondaryNationalities: PlayerSecondaryNationality[];
     languages: PlayerLanguage[];
 

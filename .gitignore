@@ -30,3 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 
 backend/src/main/resources/application-local.properties
+
+# Local-only admin system
+frontend/src/local-admin/
+frontend/public/local-admin/
+backend/src/main/java/com/clubops/localadmin/

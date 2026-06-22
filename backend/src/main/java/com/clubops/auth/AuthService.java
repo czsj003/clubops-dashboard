@@ -15,6 +15,7 @@ import com.clubops.team.system.TeamSystemFactory;
 import com.clubops.user.User;
 import com.clubops.user.UserRepository;
 import com.clubops.user.UserResponse;
+import com.clubops.user.UserAccountType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,6 +50,7 @@ public class AuthService {
                 .name(request.name())
                 .email(normalizedEmail)
                 .passwordHash(passwordEncoder.encode(request.password()))
+                .accountType(UserAccountType.NORMAL)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -75,7 +77,6 @@ public class AuthService {
                 .league(league)
                 .leagueGroup(leagueGroup)
                 .season("2026/2027")
-                .reputation(70)
                 .build();
 
         Club savedClub = clubRepository.save(club);

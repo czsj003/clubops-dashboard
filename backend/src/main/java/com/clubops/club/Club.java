@@ -40,9 +40,6 @@ public class Club {
     @Column(nullable = false)
     private String season;
 
-    @Column(nullable = false)
-    private Integer reputation;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

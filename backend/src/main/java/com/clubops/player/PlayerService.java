@@ -34,6 +34,7 @@ import com.clubops.player.dto.PlayerPositionResponse;
 import com.clubops.player.dto.PlayerSecondaryNationalityResponse;
 import com.clubops.player.dto.PlayerValueResponse;
 import com.clubops.user.User;
+import com.clubops.user.UserAccountType;
 import com.clubops.team.Team;
 import com.clubops.team.TeamRepository;
 import com.clubops.value.PlayerValueService;
@@ -218,7 +219,8 @@ public class PlayerService {
                 contractResponse,
                 valueResponse,
                 currencyService.getDefaultCurrency(),
-                currencyService.getAvailableCurrencies()
+                currencyService.getAvailableCurrencies(),
+                user.getAccountType() == UserAccountType.VIP
         );
     }
 
@@ -269,6 +271,8 @@ public class PlayerService {
             throw new RuntimeException("Team does not belong to current user's club");
         }
 
+        validateSquadNumberForCreate(team, request.squadNumber());
+
         Player player = Player.builder()
                 .club(club)
                 .team(team)
@@ -277,9 +281,9 @@ public class PlayerService {
                 .commonName(request.commonName())
                 .fullName(request.fullName())
                 .race(request.race() != null ? request.race() : Race.UNKNOWN)
-                .hairColor(request.hairColor() != null ? request.hairColor() : HairColor.UNKNOWN)
-                .hairLength(request.hairLength() != null ? request.hairLength() : HairLength.UNKNOWN)
-                .skinTone(request.skinTone() != null ? request.skinTone() : SkinTone.UNKNOWN)
+                .hairColor(request.hairColor() != null ? request.hairColor() : HairColor.BLACK)
+                .hairLength(request.hairLength() != null ? request.hairLength() : HairLength.SHORT)
+                .skinTone(request.skinTone() != null ? request.skinTone() : SkinTone.FLESH)
                 .heightCm(request.heightCm())
                 .weightKg(request.weightKg())
                 .dateOfBirth(request.dateOfBirth())
@@ -664,6 +668,7 @@ public class PlayerService {
 
     @Transactional
     public PlayerDetailResponse updatePlayer(User user, Long playerId, PlayerCreateRequest request) {
+        requireVip(user);
         validatePlayerRequest(request, false);
 
         Club club = clubRepository.findByUser(user)
@@ -700,9 +705,9 @@ public class PlayerService {
         player.setCommonName(request.commonName());
         player.setFullName(request.fullName());
         player.setRace(request.race() != null ? request.race() : Race.UNKNOWN);
-        player.setHairColor(request.hairColor() != null ? request.hairColor() : HairColor.UNKNOWN);
-        player.setHairLength(request.hairLength() != null ? request.hairLength() : HairLength.UNKNOWN);
-        player.setSkinTone(request.skinTone() != null ? request.skinTone() : SkinTone.UNKNOWN);
+        player.setHairColor(request.hairColor() != null ? request.hairColor() : HairColor.BLACK);
+        player.setHairLength(request.hairLength() != null ? request.hairLength() : HairLength.SHORT);
+        player.setSkinTone(request.skinTone() != null ? request.skinTone() : SkinTone.FLESH);
         player.setHeightCm(request.heightCm());
         player.setWeightKg(request.weightKg());
         player.setDateOfBirth(request.dateOfBirth());
@@ -779,6 +784,12 @@ public class PlayerService {
 
         PlayerContract contract = playerContractRepository.findByPlayer(player)
                 .orElseThrow(() -> new RuntimeException("Contract not found"));
+
+        validateSquadNumberForUpdate(
+                team,
+                request.squadNumber(),
+                contract.getId()
+        );
 
         releaseClausePolicyService.validate(
                 club.getCountry(),
@@ -999,8 +1010,51 @@ public class PlayerService {
             throw new IllegalArgumentException(fieldName + " is required");
         }
     }
+
+    private void validateSquadNumberForCreate(
+            Team team,
+            Integer squadNumber
+    ) {
+        if (squadNumber == null) {
+            return;
+        }
+
+        if (playerContractRepository.existsByTeamAndSquadNumber(team, squadNumber)) {
+            throw new IllegalArgumentException(
+                    "Squad number is already used in this team"
+            );
+        }
+    }
+
+    private void validateSquadNumberForUpdate(
+            Team team,
+            Integer squadNumber,
+            Long contractId
+    ) {
+        if (squadNumber == null) {
+            return;
+        }
+
+        if (playerContractRepository.existsByTeamAndSquadNumberAndIdNot(
+                team,
+                squadNumber,
+                contractId
+        )) {
+            throw new IllegalArgumentException(
+                    "Squad number is already used in this team"
+            );
+        }
+    }
+
+    private void requireVip(User user) {
+        if (user.getAccountType() != UserAccountType.VIP) {
+            throw new RuntimeException("VIP account is required for this action");
+        }
+    }
+
     @Transactional
     public void deletePlayer(User user, Long playerId) {
+        requireVip(user);
         Club club = clubRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Club not found for current user"));
 

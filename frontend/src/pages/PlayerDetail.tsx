@@ -8,6 +8,8 @@ import PlayerInfoPanel from "../components/players/PlayerInfoPanel";
 import PositionPanel from "../components/players/PositionPanel";
 import GoalkeeperSidePanel from "../components/players/GoalkeeperSidePanel";
 import { useCurrency } from "../context/CurrencyContext";
+import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessage } from "../utils/errorUtils";
 import type {
     CurrencyCode,
     PlayerDetail as PlayerDetailType,
@@ -23,6 +25,8 @@ import {
 
 function PlayerDetail() {
     const { id } = useParams();
+    const { user } = useAuth();
+    const canUseDeveloperMode = user?.accountType === "VIP";
 
     const [player, setPlayer] = useState<PlayerDetailType | null>(null);
     const [showContract, setShowContract] = useState(false);
@@ -46,8 +50,11 @@ function PlayerDetail() {
                 setPlayer(response.data);
                 setSelectedCurrency(response.data.defaultCurrency);
                 setAvailableCurrencies(response.data.availableCurrencies);
-            } catch {
-                setError("Failed to load player detail.");
+            } catch (requestError) {
+                setError(getApiErrorMessage(
+                    requestError,
+                    "Failed to load player detail."
+                ));
             } finally {
                 setLoading(false);
             }
@@ -98,23 +105,34 @@ function PlayerDetail() {
                     ))}
                 </select>
 
-                <Link to={`/players/${player.id}/dev`}>Developer Edit</Link>
+                {canUseDeveloperMode && (
+                    <>
+                        <Link to={`/players/${player.id}/dev`}>Developer Edit</Link>
 
-                <button
-                    className="danger-button"
-                    onClick={async () => {
-                        const confirmed = window.confirm(
-                            `Delete ${player.displayName} from the club?`
-                        );
+                        <button
+                            className="danger-button"
+                            onClick={async () => {
+                                const confirmed = window.confirm(
+                                    `Delete ${player.displayName} from the club?`
+                                );
 
-                        if (!confirmed) return;
+                                if (!confirmed) return;
 
-                        await api.delete(`/players/${player.id}`);
-                        window.location.href = "/squad";
-                    }}
-                >
-                    Delete Player
-                </button>
+                                try {
+                                    await api.delete(`/players/${player.id}`);
+                                    window.location.href = "/squad";
+                                } catch (requestError) {
+                                    setError(getApiErrorMessage(
+                                        requestError,
+                                        "Failed to delete player."
+                                    ));
+                                }
+                            }}
+                        >
+                            Delete Player
+                        </button>
+                    </>
+                )}
             </div>
 
             <PlayerHeader

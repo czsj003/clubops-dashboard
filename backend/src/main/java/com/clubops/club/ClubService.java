@@ -27,7 +27,6 @@ public class ClubService {
 
         club.setName(request.name());
         club.setSeason(request.season());
-        club.setReputation(request.reputation());
 
         return ClubResponse.from(club);
     }

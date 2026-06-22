@@ -28,12 +28,14 @@ function PlayerInfoPanel({ player }: PlayerInfoPanelProps) {
                     <strong>{formatWeight(player.weightKg)}</strong>
                 </div>
 
-                <div>
-                    <span>Reputation</span>
-                    <strong>
-                        {formatReputation(player.attributes.reputation.worldReputation)}
-                    </strong>
-                </div>
+                {player.attributes.reputation.worldReputation !== undefined && (
+                    <div>
+                        <span>Reputation</span>
+                        <strong>
+                            {formatReputation(player.attributes.reputation.worldReputation)}
+                        </strong>
+                    </div>
+                )}
 
                 <div>
                     <span>Personality</span>

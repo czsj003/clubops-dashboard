@@ -1,8 +1,6 @@
 package com.clubops.value;
 
 import com.clubops.club.Country;
-import com.clubops.club.FootballLeague;
-import com.clubops.club.LeagueOptionService;
 import com.clubops.value.dto.PlayerValueBandRequest;
 import com.clubops.value.dto.PlayerValueBandResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +14,9 @@ import java.util.List;
 public class PlayerValueBandService {
 
     private final PlayerValueBandRepository repository;
-    private final LeagueOptionService leagueOptionService;
 
-    public List<PlayerValueBandResponse> getBands(
-            Country country,
-            FootballLeague league
-    ) {
-        validateCountryLeague(country, league);
-
-        return repository.findByCountryAndLeagueOrderByReputationMinAsc(country, league)
+    public List<PlayerValueBandResponse> getBands(Country country) {
+        return repository.findByCountryOrderByReputationMinAsc(country)
                 .stream()
                 .map(PlayerValueBandResponse::from)
                 .toList();
@@ -36,7 +28,6 @@ public class PlayerValueBandService {
 
         PlayerValueBand band = PlayerValueBand.builder()
                 .country(request.country())
-                .league(request.league())
                 .reputationMin(request.reputationMin())
                 .reputationMax(request.reputationMax())
                 .baseValue(request.baseValue())
@@ -57,7 +48,6 @@ public class PlayerValueBandService {
         validate(request, id);
 
         band.setCountry(request.country());
-        band.setLeague(request.league());
         band.setReputationMin(request.reputationMin());
         band.setReputationMax(request.reputationMax());
         band.setBaseValue(request.baseValue());
@@ -75,8 +65,6 @@ public class PlayerValueBandService {
     }
 
     private void validate(PlayerValueBandRequest request, Long excludeId) {
-        validateCountryLeague(request.country(), request.league());
-
         if (request.reputationMin() > request.reputationMax()) {
             throw new IllegalArgumentException(
                     "Reputation minimum cannot be greater than maximum"
@@ -85,7 +73,6 @@ public class PlayerValueBandService {
 
         if (repository.existsOverlappingBand(
                 request.country(),
-                request.league(),
                 request.reputationMin(),
                 request.reputationMax(),
                 excludeId
@@ -96,12 +83,4 @@ public class PlayerValueBandService {
         }
     }
 
-    private void validateCountryLeague(Country country, FootballLeague league) {
-        if (country == null || league == null
-                || !leagueOptionService.getLeaguesForCountry(country).contains(league)) {
-            throw new IllegalArgumentException(
-                    "League does not belong to selected country"
-            );
-        }
-    }
 }

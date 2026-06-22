@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import type {
+  CountryCode,
   PlayerDetail,
   PlayerPositionType,
   ReleaseClausePolicy,
@@ -23,23 +25,32 @@ import {
   createPositionRatings,
   positionOptions,
 } from "../utils/playerPositions";
+import { nationalityOptions } from "../utils/nationalityOptions";
+import { getApiErrorMessage } from "../utils/errorUtils";
 
 type AttributeMap = Record<string, number>;
 
 function PlayerDeveloperEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [attributes, setAttributes] = useState<AttributeMap>({});
   const [positionRatings, setPositionRatings] = useState<
     Record<PlayerPositionType, number>
   >(() => createPositionRatings());
+  const [secondaryNationalities, setSecondaryNationalities] =
+    useState<CountryCode[]>([]);
   const [releaseClauseRule, setReleaseClauseRule] =
     useState<ReleaseClauseRule>("OPTIONAL");
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadPlayer() {
+      if (user?.accountType !== "VIP") {
+        return;
+      }
+
       try {
         const [response, policyResponse] = await Promise.all([
           api.get<PlayerDetail>(`/players/${id}`),
@@ -47,6 +58,9 @@ function PlayerDeveloperEdit() {
         ]);
         setPlayer(response.data);
         setReleaseClauseRule(policyResponse.data.rule);
+        setSecondaryNationalities(
+          response.data.secondaryNationalities.map((item) => item.countryCode)
+        );
 
         const loadedPositions = createPositionRatings();
         response.data.positions.forEach((position) => {
@@ -80,7 +94,7 @@ function PlayerDeveloperEdit() {
     if (id) {
       loadPlayer();
     }
-  }, [id]);
+  }, [id, user?.accountType]);
 
   function updateAttribute(key: string, value: number) {
     setAttributes((current) => ({
@@ -137,6 +151,18 @@ function PlayerDeveloperEdit() {
     }
   }
 
+  function toggleSecondaryNationality(country: CountryCode) {
+    setSecondaryNationalities((current) => {
+      if (current.includes(country)) {
+        return current.filter((item) => item !== country);
+      }
+      if (player && country === player.nationality) {
+        return current;
+      }
+      return [...current, country];
+    });
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -181,9 +207,7 @@ function PlayerDeveloperEdit() {
           birthCity: player.birthCity,
           birthCountry: player.birthCountry,
           nationality: player.nationality,
-          secondaryNationalities: player.secondaryNationalities.map(
-            (item) => item.countryCode
-          ),
+          secondaryNationalities,
           languages,
           positions: positionRatings,
           attributes: finalAttributes,
@@ -207,11 +231,22 @@ function PlayerDeveloperEdit() {
       });
 
       navigate(`/players/${player.id}`);
-    } catch {
-      setError(
-        "Failed to update player. Outfield goalkeeper attributes must stay 0; editable attributes must be at least 1."
-      );
+    } catch (requestError) {
+      setError(getApiErrorMessage(
+        requestError,
+        "Failed to update player. Check positions and attribute ranges."
+      ));
     }
+  }
+
+  if (user?.accountType !== "VIP") {
+    return (
+      <main className="content-page">
+        <div className="error-message">
+          Developer mode is only available for VIP users.
+        </div>
+      </main>
+    );
   }
 
   if (!player && !error) {
@@ -263,6 +298,25 @@ function PlayerDeveloperEdit() {
       {error && <div className="error-message">{error}</div>}
 
       <form className="player-form" onSubmit={handleSubmit}>
+        <section className="form-section-card">
+          <h2>Secondary Nationalities</h2>
+
+          <div className="checkbox-grid">
+            {nationalityOptions
+              .filter((option) => option.value !== player.nationality)
+              .map((option) => (
+                <label key={option.value} className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={secondaryNationalities.includes(option.value)}
+                    onChange={() => toggleSecondaryNationality(option.value)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+          </div>
+        </section>
+
         <section className="form-section-card">
           <h2>Positions</h2>
 

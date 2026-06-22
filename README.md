@@ -370,17 +370,43 @@ Player value system:
 - Final value adjusts the matching base value by age, CA, PA, and reputation.
 - A fallback formula is used when no database band matches.
 - Player value is recalculated after player creation and developer updates.
-- Overlapping reputation ranges for the same country and league are rejected.
+- Overlapping reputation ranges for the same country are rejected.
 
 ### Where to enter player value data
 
-Run the app, sign in, and open **Value Database** in the left sidebar.
-The direct frontend route is:
+Value data is managed only through the private local admin interface:
 
 ```text
-http://localhost:5173/value-bands
+http://localhost:5173/local-admin/
 ```
 
-Select a country and league, then enter non-overlapping world-reputation
-ranges from 1 to 200. Records can be added, edited, or deleted in the same
-screen. No country value data is preloaded.
+After local admin login, select a country and enter non-overlapping
+world-reputation ranges from 1 to 200. No country value data is preloaded.
+
+## Day 12 Progress
+
+Improved player creation, validation, account permissions, and value database
+structure.
+
+Changes:
+
+- Added ethnicity, hair color, hair length, and skin color selection.
+- Added more nationality options and secondary nationality editing.
+- Removed club reputation from the coach-facing model and UI.
+- Squad numbers are optional and unique inside each team.
+- Added `NORMAL` and `VIP` account types.
+- NORMAL users can create players but cannot edit or delete them.
+- VIP users can access developer edit and hidden player attributes.
+- Value bands are country-based and no longer depend on league.
+- Removed value database editing from the public application.
+- Added unified frontend API error handling.
+- Added backend global exception responses.
+
+Local-only administration:
+
+- A private local admin system manages users and country value bands.
+- It can change accounts between NORMAL and VIP.
+- Deleting a user also removes their club, teams, players, contracts, and
+  related player data.
+- The local admin implementation and credentials are excluded from Git using
+  `.gitignore`.

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import type { Team } from "../types/club";
 import type {
+  CountryCode,
   PlayerPositionType,
   ReleaseClausePolicy,
   ReleaseClauseRule,
@@ -23,6 +24,14 @@ import {
   createPositionRatings,
   positionOptions,
 } from "../utils/playerPositions";
+import { nationalityOptions } from "../utils/nationalityOptions";
+import {
+  ethnicityOptions,
+  hairColorOptions,
+  hairLengthOptions,
+  skinToneOptions,
+} from "../utils/playerAppearanceOptions";
+import { getApiErrorMessage } from "../utils/errorUtils";
 
 type AttributeMap = Record<string, number>;
 
@@ -131,9 +140,16 @@ function PlayerForm() {
   const [fullName, setFullName] = useState("New Player");
   const [dateOfBirth, setDateOfBirth] = useState("2004-01-01");
   const [birthCity, setBirthCity] = useState("London");
-  const [nationality, setNationality] = useState("ENGLAND");
+  const [nationality, setNationality] =
+    useState<CountryCode>("ENGLAND");
+  const [secondaryNationalities, setSecondaryNationalities] =
+    useState<CountryCode[]>([]);
   const [heightCm, setHeightCm] = useState(180);
   const [weightKg, setWeightKg] = useState(75);
+  const [race, setRace] = useState("UNKNOWN");
+  const [hairColor, setHairColor] = useState("BLACK");
+  const [hairLength, setHairLength] = useState("SHORT");
+  const [skinTone, setSkinTone] = useState("FLESH");
   const [positionRatings, setPositionRatings] = useState<
     Record<PlayerPositionType, number>
   >(() => createPositionRatings("STRIKER"));
@@ -143,7 +159,7 @@ function PlayerForm() {
   const [contractEndDate, setContractEndDate] = useState("2029-06-30");
   const [contractType, setContractType] = useState("FULL_TIME");
   const [wageAmount, setWageAmount] = useState(1000);
-  const [squadNumber, setSquadNumber] = useState(30);
+  const [squadNumber, setSquadNumber] = useState("");
   const [releaseClauseAmount, setReleaseClauseAmount] = useState("");
   const [releaseClauseRule, setReleaseClauseRule] =
     useState<ReleaseClauseRule>("OPTIONAL");
@@ -238,6 +254,18 @@ function PlayerForm() {
     }));
   }
 
+  function toggleSecondaryNationality(country: CountryCode) {
+    setSecondaryNationalities((current) => {
+      if (current.includes(country)) {
+        return current.filter((item) => item !== country);
+      }
+      if (country === nationality) {
+        return current;
+      }
+      return [...current, country];
+    });
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -270,17 +298,17 @@ function PlayerForm() {
         lastName,
         commonName: commonName || null,
         fullName,
-        race: "UNKNOWN",
-        hairColor: "UNKNOWN",
-        hairLength: "UNKNOWN",
-        skinTone: "UNKNOWN",
+        race,
+        hairColor,
+        hairLength,
+        skinTone,
         heightCm,
         weightKg,
         dateOfBirth,
         birthCity,
         birthCountry: nationality,
         nationality,
-        secondaryNationalities: [],
+        secondaryNationalities,
         languages: {
           ENGLISH: 10,
         },
@@ -296,7 +324,7 @@ function PlayerForm() {
         wageAmount,
         wageCurrency: "GBP",
         wageDisplayPeriod: "WEEKLY",
-        squadNumber,
+        squadNumber: squadNumber ? Number(squadNumber) : null,
         releaseClauseAmount:
           releaseClauseRule === "FORBIDDEN"
             ? null
@@ -312,10 +340,11 @@ function PlayerForm() {
       });
 
       navigate(`/players/${response.data.id}`);
-    } catch {
-      setError(
+    } catch (requestError) {
+      setError(getApiErrorMessage(
+        requestError,
         "Failed to create player. Check required fields and attribute ranges."
-      );
+      ));
     }
   }
 
@@ -381,16 +410,19 @@ function PlayerForm() {
           <Field label="Nationality">
             <select
               value={nationality}
-              onChange={(event) => setNationality(event.target.value)}
+              onChange={(event) => {
+                const nextNationality = event.target.value as CountryCode;
+                setNationality(nextNationality);
+                setSecondaryNationalities((current) =>
+                  current.filter((item) => item !== nextNationality)
+                );
+              }}
             >
-              <option value="ENGLAND">England</option>
-              <option value="PORTUGAL">Portugal</option>
-              <option value="FRANCE">France</option>
-              <option value="SPAIN">Spain</option>
-              <option value="GERMANY">Germany</option>
-              <option value="ITALY">Italy</option>
-              <option value="BRAZIL">Brazil</option>
-              <option value="ARGENTINA">Argentina</option>
+              {nationalityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </Field>
           <Field label="Height cm">
@@ -411,6 +443,68 @@ function PlayerForm() {
               onChange={(event) => setWeightKg(Number(event.target.value))}
             />
           </Field>
+          <Field label="Ethnicity">
+            <select value={race} onChange={(event) => setRace(event.target.value)}>
+              {ethnicityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Hair Color">
+            <select
+              value={hairColor}
+              onChange={(event) => setHairColor(event.target.value)}
+            >
+              {hairColorOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Hair Length">
+            <select
+              value={hairLength}
+              onChange={(event) => setHairLength(event.target.value)}
+            >
+              {hairLengthOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Skin Color">
+            <select
+              value={skinTone}
+              onChange={(event) => setSkinTone(event.target.value)}
+            >
+              {skinToneOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </FormSection>
+
+        <FormSection title="Secondary Nationalities">
+          <div className="checkbox-grid">
+            {nationalityOptions
+              .filter((option) => option.value !== nationality)
+              .map((option) => (
+                <label key={option.value} className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={secondaryNationalities.includes(option.value)}
+                    onChange={() => toggleSecondaryNationality(option.value)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+          </div>
         </FormSection>
 
         <FormSection title="Team and Positions">
@@ -594,7 +688,8 @@ function PlayerForm() {
               max={99}
               type="number"
               value={squadNumber}
-              onChange={(event) => setSquadNumber(Number(event.target.value))}
+              onChange={(event) => setSquadNumber(event.target.value)}
+              placeholder="Optional"
             />
           </Field>
           <div className="form-help">

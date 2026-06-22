@@ -31,6 +31,10 @@ public class User implements UserDetails {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_type", nullable = false)
+    private UserAccountType accountType;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -39,6 +43,10 @@ public class User implements UserDetails {
 
     @PrePersist
     public void prePersist() {
+        if (accountType == null) {
+            accountType = UserAccountType.NORMAL;
+        }
+
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;

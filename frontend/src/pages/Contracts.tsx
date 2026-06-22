@@ -10,6 +10,7 @@ import {
   formatMoney,
   formatWagePeriod,
 } from "../utils/formatters";
+import { getApiErrorMessage } from "../utils/errorUtils";
 
 function Contracts() {
   const [contracts, setContracts] = useState<ContractListItem[]>([]);
@@ -22,8 +23,11 @@ function Contracts() {
       try {
         const response = await api.get<ContractListItem[]>("/contracts");
         setContracts(response.data);
-      } catch {
-        setError("Failed to load player contracts.");
+      } catch (requestError) {
+        setError(getApiErrorMessage(
+          requestError,
+          "Failed to load player contracts."
+        ));
       } finally {
         setLoading(false);
       }

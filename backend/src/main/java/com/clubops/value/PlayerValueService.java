@@ -32,7 +32,6 @@ public class PlayerValueService {
 
         BigDecimal marketAnchor = repository.findMatchingBand(
                 club.getCountry(),
-                club.getLeague(),
                 reputation
         )
                 .map(this::convertBandToGbp)

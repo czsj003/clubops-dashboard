@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { useCurrency } from "../context/CurrencyContext";
 import type { CurrencyCode, FinanceSummary } from "../types/player";
 import { convertFromGbp, formatMoney } from "../utils/formatters";
+import { getApiErrorMessage } from "../utils/errorUtils";
 
 function Finance() {
   const [finance, setFinance] = useState<FinanceSummary | null>(null);
@@ -14,8 +15,11 @@ function Finance() {
       try {
         const response = await api.get<FinanceSummary>("/finance");
         setFinance(response.data);
-      } catch {
-        setError("Failed to load finance summary.");
+      } catch (requestError) {
+        setError(getApiErrorMessage(
+          requestError,
+          "Failed to load finance summary."
+        ));
       }
     }
 

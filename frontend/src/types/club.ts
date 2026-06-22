@@ -7,7 +7,6 @@ export interface Club {
   league: FootballLeague;
   leagueGroup: string | null;
   season: string;
-  reputation: number;
 }
 
 export type TeamType =

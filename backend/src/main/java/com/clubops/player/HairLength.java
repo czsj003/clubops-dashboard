@@ -4,6 +4,5 @@ public enum HairLength {
     BALD,
     SHORT,
     MEDIUM,
-    LONG,
-    UNKNOWN
+    LONG
 }

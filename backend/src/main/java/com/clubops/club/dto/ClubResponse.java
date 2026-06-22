@@ -10,8 +10,7 @@ public record ClubResponse(
         Country country,
         FootballLeague league,
         String leagueGroup,
-        String season,
-        Integer reputation
+        String season
 ) {
     public static ClubResponse from(Club club) {
         return new ClubResponse(
@@ -20,8 +19,7 @@ public record ClubResponse(
                 club.getCountry(),
                 club.getLeague(),
                 club.getLeagueGroup(),
-                club.getSeason(),
-                club.getReputation()
+                club.getSeason()
         );
     }
 }

@@ -2,11 +2,10 @@ package com.clubops.player;
 
 public enum HairColor {
     BLACK,
-    BROWN,
     BLONDE,
-    RED,
+    LIGHT_BLONDE,
+    BROWN,
+    LIGHT_BROWN,
     GREY,
-    BALD,
-    OTHER,
-    UNKNOWN
+    RED
 }

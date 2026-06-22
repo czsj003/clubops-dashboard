@@ -2,6 +2,7 @@ package com.clubops.contract;
 
 import com.clubops.club.Club;
 import com.clubops.player.Player;
+import com.clubops.team.Team;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -15,4 +16,12 @@ public interface PlayerContractRepository extends JpaRepository<PlayerContract, 
 
     @EntityGraph(attributePaths = {"club", "team", "player"})
     List<PlayerContract> findByClubOrderByTeamDisplayOrderAscPlayerDisplayNameAsc(Club club);
+
+    boolean existsByTeamAndSquadNumber(Team team, Integer squadNumber);
+
+    boolean existsByTeamAndSquadNumberAndIdNot(
+            Team team,
+            Integer squadNumber,
+            Long id
+    );
 }

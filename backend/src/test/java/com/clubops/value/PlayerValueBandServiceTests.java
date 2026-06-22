@@ -1,8 +1,6 @@
 package com.clubops.value;
 
 import com.clubops.club.Country;
-import com.clubops.club.FootballLeague;
-import com.clubops.club.LeagueOptionService;
 import com.clubops.currency.CurrencyCode;
 import com.clubops.value.dto.PlayerValueBandRequest;
 import org.junit.jupiter.api.Test;
@@ -18,41 +16,30 @@ class PlayerValueBandServiceTests {
     private final PlayerValueBandRepository repository =
             mock(PlayerValueBandRepository.class);
     private final PlayerValueBandService service =
-            new PlayerValueBandService(repository, new LeagueOptionService());
+            new PlayerValueBandService(repository);
 
     @Test
-    void rejectsLeagueFromAnotherCountry() {
-        PlayerValueBandRequest request = request(FootballLeague.LA_LIGA, 1, 10);
-
-        assertThatThrownBy(() -> service.createBand(request))
-                .hasMessage("League does not belong to selected country");
+    void rejectsInvalidReputationRange() {
+        assertThatThrownBy(() -> service.createBand(request(20, 10)))
+                .hasMessage("Reputation minimum cannot be greater than maximum");
     }
 
     @Test
     void rejectsOverlappingReputationRanges() {
-        PlayerValueBandRequest request =
-                request(FootballLeague.EFL_CHAMPIONSHIP, 10, 20);
-
         when(repository.existsOverlappingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 10,
                 20,
                 null
         )).thenReturn(true);
 
-        assertThatThrownBy(() -> service.createBand(request))
+        assertThatThrownBy(() -> service.createBand(request(10, 20)))
                 .hasMessage("Reputation range overlaps an existing value band");
     }
 
-    private PlayerValueBandRequest request(
-            FootballLeague league,
-            int minimum,
-            int maximum
-    ) {
+    private PlayerValueBandRequest request(int minimum, int maximum) {
         return new PlayerValueBandRequest(
                 Country.ENGLAND,
-                league,
                 minimum,
                 maximum,
                 BigDecimal.valueOf(100_000),

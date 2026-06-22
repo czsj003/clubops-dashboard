@@ -34,7 +34,6 @@ class PlayerValueServiceTests {
 
         when(repository.findMatchingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 130
         )).thenReturn(Optional.of(band));
 
@@ -59,7 +58,6 @@ class PlayerValueServiceTests {
 
         when(repository.findMatchingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 124
         )).thenReturn(Optional.of(band));
 
@@ -80,12 +78,10 @@ class PlayerValueServiceTests {
     void allThreeReputationValuesAffectTheResult() {
         when(repository.findMatchingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 100
         )).thenReturn(Optional.empty());
         when(repository.findMatchingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 65
         )).thenReturn(Optional.empty());
 
@@ -107,7 +103,6 @@ class PlayerValueServiceTests {
     void positionOrderIsStrikerThenMidfielderThenDefenderThenGoalkeeper() {
         when(repository.findMatchingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 100
         )).thenReturn(Optional.empty());
 
@@ -140,7 +135,6 @@ class PlayerValueServiceTests {
     void extraNaturalAndStrongPositionsAddOnlyACappedPremium() {
         when(repository.findMatchingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 100
         )).thenReturn(Optional.empty());
 
@@ -171,7 +165,6 @@ class PlayerValueServiceTests {
     void usesReputationDerivedMarketAnchorWhenNoBandMatches() {
         when(repository.findMatchingBand(
                 Country.ENGLAND,
-                FootballLeague.EFL_CHAMPIONSHIP,
                 60
         )).thenReturn(Optional.empty());
 
@@ -227,7 +220,6 @@ class PlayerValueServiceTests {
     private PlayerValueBand band(BigDecimal baseValue) {
         return PlayerValueBand.builder()
                 .country(Country.ENGLAND)
-                .league(FootballLeague.EFL_CHAMPIONSHIP)
                 .reputationMin(101)
                 .reputationMax(150)
                 .baseValue(baseValue)

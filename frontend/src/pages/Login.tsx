@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessage } from "../utils/errorUtils";
 
 function Login() {
   const navigate = useNavigate();
@@ -18,8 +19,11 @@ function Login() {
     try {
       await login({ email, password });
       navigate("/dashboard");
-    } catch {
-      setError("Login failed. Please check your email and password.");
+    } catch (requestError) {
+      setError(getApiErrorMessage(
+        requestError,
+        "Login failed. Please check your email and password."
+      ));
     }
   }
 

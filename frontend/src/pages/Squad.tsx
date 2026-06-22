@@ -12,6 +12,7 @@ import {
   formatLeague,
   formatLeagueGroup,
 } from "../utils/leagueOptions";
+import { getApiErrorMessage } from "../utils/errorUtils";
 
 function Squad() {
   const [club, setClub] = useState<Club | null>(null);
@@ -42,8 +43,8 @@ function Squad() {
 
         setClub(clubResponse.data);
         setTeams(teamsResponse.data);
-      } catch {
-        setError("Failed to load squad data.");
+      } catch (requestError) {
+        setError(getApiErrorMessage(requestError, "Failed to load squad data."));
       } finally {
         setLoading(false);
       }
@@ -66,8 +67,11 @@ function Squad() {
           `/players?${params}`
         );
         setPlayers(response.data);
-      } catch {
-        setError("Failed to filter squad players.");
+      } catch (requestError) {
+        setError(getApiErrorMessage(
+          requestError,
+          "Failed to filter squad players."
+        ));
       }
     }
 
@@ -118,10 +122,6 @@ function Squad() {
           <div>
             <strong>{teams.length}</strong>
             <span>Teams</span>
-          </div>
-          <div>
-            <strong>{club?.reputation}</strong>
-            <span>Reputation</span>
           </div>
         </div>
       </section>

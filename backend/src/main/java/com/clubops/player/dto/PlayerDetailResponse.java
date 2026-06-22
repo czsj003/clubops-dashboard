@@ -67,7 +67,8 @@ public record PlayerDetailResponse(
             PlayerContractResponse contract,
             PlayerValueResponse value,
             CurrencyCode defaultCurrency,
-            List<CurrencyInfoResponse> availableCurrencies
+            List<CurrencyInfoResponse> availableCurrencies,
+            boolean includeHiddenAttributes
     ) {
         return new PlayerDetailResponse(
                 player.getId(),
@@ -104,7 +105,7 @@ public record PlayerDetailResponse(
                 isGoalkeeper,
 
                 positions,
-                PlayerAttributeGroupResponse.from(attributes),
+                PlayerAttributeGroupResponse.from(attributes, includeHiddenAttributes),
 
                 personality,
                 mediaHandlingStyle,

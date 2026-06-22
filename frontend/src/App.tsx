@@ -11,7 +11,6 @@ import PlayerForm from "./pages/PlayerForm";
 import PlayerDeveloperEdit from "./pages/PlayerDeveloperEdit";
 import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
-import ValueBands from "./pages/ValueBands";
 import "./App.css";
 
 function App() {
@@ -36,7 +35,6 @@ function App() {
             <Route path="/squad" element={<Squad />} />
             <Route path="/contracts" element={<Contracts />} />
             <Route path="/finance" element={<Finance />} />
-            <Route path="/value-bands" element={<ValueBands />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="/players/new" element={<PlayerForm />} />
             <Route path="/players/:id/dev" element={<PlayerDeveloperEdit />} />

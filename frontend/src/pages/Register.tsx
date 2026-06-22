@@ -7,6 +7,7 @@ import {
   countryOptions,
   leagueOptionsByCountry,
 } from "../utils/leagueOptions";
+import { getApiErrorMessage } from "../utils/errorUtils";
 
 function Register() {
   const navigate = useNavigate();
@@ -42,8 +43,11 @@ function Register() {
       });
 
       navigate("/dashboard");
-    } catch {
-      setError("Registration failed. The email may already be registered.");
+    } catch (requestError) {
+      setError(getApiErrorMessage(
+        requestError,
+        "Registration failed. The email may already be registered."
+      ));
     }
   }
 

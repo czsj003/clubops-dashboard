@@ -13,6 +13,8 @@ public enum CountryCode {
     PORTUGAL,
     NETHERLANDS,
     BELGIUM,
+    TURKEY,
+    SAUDI_ARABIA,
     BRAZIL,
     ARGENTINA,
     USA,

@@ -64,6 +64,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  accountType: "NORMAL" | "VIP";
 }
 
 export interface AuthResponse {

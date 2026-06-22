@@ -25,6 +25,9 @@ import com.clubops.currency.CurrencyCode;
 import com.clubops.currency.CurrencyService;
 import com.clubops.player.dto.PlayerCreateRequest;
 import com.clubops.team.TeamRepository;
+import com.clubops.team.Team;
+import com.clubops.user.User;
+import com.clubops.user.UserAccountType;
 import com.clubops.value.PlayerValueService;
 
 @ExtendWith(MockitoExtension.class)
@@ -189,6 +192,56 @@ class PlayerServiceValidationTests {
         assertThat(attributes.get("handling")).isZero();
     }
 
+    @Test
+    void normalUsersCannotUseVipActions() {
+        User normalUser = User.builder()
+                .accountType(UserAccountType.NORMAL)
+                .build();
+
+        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(
+                playerService,
+                "requireVip",
+                normalUser
+        )).hasMessage("VIP account is required for this action");
+    }
+
+    @Test
+    void vipUsersCanUseVipActions() {
+        User vipUser = User.builder()
+                .accountType(UserAccountType.VIP)
+                .build();
+
+        ReflectionTestUtils.invokeMethod(playerService, "requireVip", vipUser);
+    }
+
+    @Test
+    void duplicateSquadNumberInSameTeamIsRejected() {
+        Team team = Team.builder().id(1L).build();
+
+        org.mockito.Mockito.when(
+                playerContractRepository.existsByTeamAndSquadNumber(team, 10)
+        ).thenReturn(true);
+
+        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(
+                playerService,
+                "validateSquadNumberForCreate",
+                team,
+                10
+        )).hasMessage("Squad number is already used in this team");
+    }
+
+    @Test
+    void emptySquadNumberIsAllowed() {
+        Team team = Team.builder().id(1L).build();
+
+        ReflectionTestUtils.invokeMethod(
+                playerService,
+                "validateSquadNumberForCreate",
+                team,
+                null
+        );
+    }
+
     private void validate(PlayerCreateRequest request) {
         ReflectionTestUtils.invokeMethod(
                 playerService,
@@ -223,9 +276,9 @@ class PlayerServiceValidationTests {
                 null,
                 "Test Player",
                 Race.UNKNOWN,
-                HairColor.UNKNOWN,
-                HairLength.UNKNOWN,
-                SkinTone.UNKNOWN,
+                HairColor.BLACK,
+                HairLength.SHORT,
+                SkinTone.FLESH,
                 180,
                 75,
                 LocalDate.of(2000, 1, 1),

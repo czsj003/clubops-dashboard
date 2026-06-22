@@ -54,7 +54,6 @@ function Dashboard() {
             <p>Country System: {formatCountry(club.country)}</p>
             <p>League: {formatLeague(club.league)}</p>
             <p>Season: {club.season}</p>
-            <p>Reputation: {club.reputation}/100</p>
           </section>
 
           <section className="card">

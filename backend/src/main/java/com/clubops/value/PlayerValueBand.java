@@ -1,7 +1,6 @@
 package com.clubops.value;
 
 import com.clubops.club.Country;
-import com.clubops.club.FootballLeague;
 import com.clubops.currency.CurrencyCode;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +13,6 @@ import java.time.Instant;
         name = "player_value_bands",
         uniqueConstraints = @UniqueConstraint(columnNames = {
                 "country",
-                "league",
                 "reputation_min",
                 "reputation_max"
         })
@@ -33,10 +31,6 @@ public class PlayerValueBand {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Country country;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private FootballLeague league;
 
     @Column(name = "reputation_min", nullable = false)
     private Integer reputationMin;
@@ -72,8 +66,8 @@ public class PlayerValueBand {
     }
 
     private void validate() {
-        if (country == null || league == null || currency == null) {
-            throw new IllegalArgumentException("Country, league, and currency are required");
+        if (country == null || currency == null) {
+            throw new IllegalArgumentException("Country and currency are required");
         }
         if (reputationMin == null || reputationMax == null
                 || reputationMin < 1 || reputationMax > 200
