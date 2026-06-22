@@ -113,8 +113,19 @@ export function formatWeight(kg: number) {
     return `${kg} kg`;
 }
 
+function parseLocalDate(date: string) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+
+    if (!match) {
+        return new Date(date);
+    }
+
+    const [, year, month, day] = match;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
 export function formatDate(date: string) {
-    return new Date(date).toLocaleDateString();
+    return parseLocalDate(date).toLocaleDateString();
 }
 
 export function formatReputation(value: number | null | undefined) {
@@ -149,7 +160,7 @@ export function formatFootAbility(value: number | null | undefined) {
 }
 
 export function formatDateShort(date: string) {
-    const parsed = new Date(date);
+    const parsed = parseLocalDate(date);
 
     return parsed.toLocaleDateString(undefined, {
         year: "numeric",
