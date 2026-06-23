@@ -29,7 +29,10 @@ function Register() {
   const [leagueGroup, setLeagueGroup] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState("");
   const [registrationMode, setRegistrationMode] =
-    useState<RegistrationMode>("OPEN");
+    useState<RegistrationMode>("DISABLED");
+  const [registrationConfigLoading, setRegistrationConfigLoading] =
+    useState(true);
+  const [registrationConfigError, setRegistrationConfigError] = useState("");
   const [error, setError] = useState("");
 
   const leagueOptions = leagueOptionsByCountry[country];
@@ -43,8 +46,14 @@ function Register() {
           "/auth/registration-config"
         );
         setRegistrationMode(response.data.mode);
+        setRegistrationConfigError("");
       } catch {
-        setRegistrationMode("OPEN");
+        setRegistrationMode("DISABLED");
+        setRegistrationConfigError(
+          "Could not load registration settings. Please make sure the backend is running."
+        );
+      } finally {
+        setRegistrationConfigLoading(false);
       }
     }
 
@@ -85,7 +94,15 @@ function Register() {
 
         {error && <div className="error-message">{error}</div>}
 
-        {registrationMode === "DISABLED" && (
+        {registrationConfigError && (
+          <div className="error-message">{registrationConfigError}</div>
+        )}
+
+        {registrationConfigLoading && (
+          <div className="form-help">Loading registration settings...</div>
+        )}
+
+        {!registrationConfigLoading && registrationMode === "DISABLED" && (
           <div className="error-message">
             Registration is currently disabled. Please contact the project owner
             for access.
@@ -207,8 +224,13 @@ function Register() {
             </div>
           )}
 
-          <button type="submit" disabled={registrationMode === "DISABLED"}>
-            Register
+          <button
+            type="submit"
+            disabled={
+              registrationConfigLoading || registrationMode === "DISABLED"
+            }
+          >
+            {registrationConfigLoading ? "Loading..." : "Register"}
           </button>
         </form>
 
