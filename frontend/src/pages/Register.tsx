@@ -13,10 +13,10 @@ function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
 
-  const [name, setName] = useState("Justin Tao");
-  const [email, setEmail] = useState("justin@example.com");
-  const [password, setPassword] = useState("123456");
-  const [clubName, setClubName] = useState("Northbridge FC");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [clubName, setClubName] = useState("");
   const [country, setCountry] = useState<Country>("ENGLAND");
   const [league, setLeague] =
     useState<FootballLeague>("EFL_CHAMPIONSHIP");

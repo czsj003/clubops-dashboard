@@ -9,10 +9,16 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env
 frontend/.env.local
+frontend/.env.production
 
 # Environment files
 .env
+.env.local
+.env.production
 *.env
+backend/.env
+backend/.env.local
+backend/.env.production
 
 # OS
 .DS_Store
@@ -34,4 +40,5 @@ backend/src/main/resources/application-local.properties
 # Local-only admin system
 frontend/src/local-admin/
 frontend/public/local-admin/
+frontend/local-admin/
 backend/src/main/java/com/clubops/localadmin/

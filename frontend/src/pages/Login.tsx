@@ -8,8 +8,8 @@ function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState("genesis01@example.com");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   async function handleSubmit(event: FormEvent) {
