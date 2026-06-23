@@ -6,6 +6,7 @@ built with Spring Boot, React, TypeScript, and MySQL.
 ## Features
 
 - User registration and JWT login
+- Private hosted registration modes
 - Club setup by country, league, and league group
 - Country-specific first-team and youth-team generation
 - Squad search and filtering
@@ -116,6 +117,8 @@ Required backend configuration:
 - `DB_PASSWORD`
 - `JWT_SECRET`
 - `CORS_ALLOWED_ORIGINS`
+- `REGISTRATION_MODE`
+- `INVITE_CODE` when using invite-only registration
 
 Required frontend configuration:
 
@@ -123,6 +126,45 @@ Required frontend configuration:
 
 Use `SPRING_PROFILES_ACTIVE=production` and keep
 `JPA_DDL_AUTO=update` for the demo deployment.
+
+## Deployment Status
+
+This project is primarily designed to run locally from the public repository.
+People who want to use the app can download it, configure their own database,
+and run it themselves.
+
+A private hosted version may be available for the project owner and selected
+users. Public self-service registration should not be left open in that hosted
+environment. New hosted users require an invite code or manual approval.
+
+This keeps the GitHub repository useful while preventing unrestricted access to
+the private hosted demo database.
+
+## Registration Modes
+
+The backend supports three registration modes:
+
+| Mode | Behavior |
+|---|---|
+| `OPEN` | Anyone can register |
+| `INVITE_ONLY` | Users must provide a valid invite code |
+| `DISABLED` | Registration is closed |
+
+For local development:
+
+```env
+REGISTRATION_MODE=OPEN
+INVITE_CODE=
+```
+
+For a private hosted version:
+
+```env
+REGISTRATION_MODE=INVITE_ONLY
+INVITE_CODE=your-private-invite-code
+```
+
+Do not commit a real invite code to GitHub.
 
 ## Build
 

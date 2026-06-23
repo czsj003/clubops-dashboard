@@ -22,6 +22,8 @@ public record RegisterRequest(
 
         Country country,
         FootballLeague league,
-        String leagueGroup
+        String leagueGroup,
+
+        String inviteCode
 ) {
 }

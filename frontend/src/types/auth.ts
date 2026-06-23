@@ -80,9 +80,16 @@ export interface RegisterRequest {
   country: Country;
   league: FootballLeague;
   leagueGroup: string | null;
+  inviteCode?: string;
 }
 
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export type RegistrationMode = "OPEN" | "INVITE_ONLY" | "DISABLED";
+
+export interface RegistrationConfig {
+  mode: RegistrationMode;
 }

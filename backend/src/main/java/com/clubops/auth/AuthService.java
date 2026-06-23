@@ -37,9 +37,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final RegistrationPolicyService registrationPolicyService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        registrationPolicyService.validateRegistration(request);
+
         String normalizedEmail = request.email().toLowerCase();
 
         if (userRepository.existsByEmail(normalizedEmail)) {

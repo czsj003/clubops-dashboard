@@ -41,6 +41,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -78,6 +83,12 @@ button {
 
 .form-group label {
   font-weight: 700;
+}
+
+.form-hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 .form-group input,

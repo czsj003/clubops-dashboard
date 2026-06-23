@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import type { Country, FootballLeague } from "../types/auth";
+import type {
+  Country,
+  FootballLeague,
+  RegistrationConfig,
+  RegistrationMode,
+} from "../types/auth";
 import {
   countryOptions,
   leagueOptionsByCountry,
@@ -21,11 +27,29 @@ function Register() {
   const [league, setLeague] =
     useState<FootballLeague>("EFL_CHAMPIONSHIP");
   const [leagueGroup, setLeagueGroup] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState("");
+  const [registrationMode, setRegistrationMode] =
+    useState<RegistrationMode>("OPEN");
   const [error, setError] = useState("");
 
   const leagueOptions = leagueOptionsByCountry[country];
   const selectedLeague = leagueOptions.find((option) => option.value === league);
   const groupOptions = selectedLeague?.groups ?? [];
+
+  useEffect(() => {
+    async function loadRegistrationConfig() {
+      try {
+        const response = await api.get<RegistrationConfig>(
+          "/auth/registration-config"
+        );
+        setRegistrationMode(response.data.mode);
+      } catch {
+        setRegistrationMode("OPEN");
+      }
+    }
+
+    loadRegistrationConfig();
+  }, []);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -40,6 +64,8 @@ function Register() {
         country,
         league,
         leagueGroup,
+        inviteCode:
+          registrationMode === "INVITE_ONLY" ? inviteCode : undefined,
       });
 
       navigate("/dashboard");
@@ -58,6 +84,13 @@ function Register() {
         <p>Create your ClubOps account and simulated club.</p>
 
         {error && <div className="error-message">{error}</div>}
+
+        {registrationMode === "DISABLED" && (
+          <div className="error-message">
+            Registration is currently disabled. Please contact the project owner
+            for access.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -159,7 +192,24 @@ function Register() {
             </div>
           )}
 
-          <button type="submit">Register</button>
+          {registrationMode === "INVITE_ONLY" && (
+            <div className="form-group">
+              <label>Invite Code</label>
+              <input
+                value={inviteCode}
+                onChange={(event) => setInviteCode(event.target.value)}
+                type="text"
+                placeholder="Enter invite code"
+              />
+              <small className="form-hint">
+                This hosted version requires an invite code.
+              </small>
+            </div>
+          )}
+
+          <button type="submit" disabled={registrationMode === "DISABLED"}>
+            Register
+          </button>
         </form>
 
         <p>
