@@ -3,6 +3,12 @@
 ClubOps is a Football Manager-inspired coach and player management application
 built with Spring Boot, React, TypeScript, and MySQL.
 
+## Live Demo
+
+[View Live Demo](https://clubops-dashboard.vercel.app/)
+
+Backend API: https://clubops-dashboard.onrender.com
+
 ## Features
 
 - User registration and JWT login
