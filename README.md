@@ -140,6 +140,28 @@ environment. New hosted users require an invite code or manual approval.
 This keeps the GitHub repository useful while preventing unrestricted access to
 the private hosted demo database.
 
+## Private Hosted Demo
+
+A private hosted version may be available on request.
+
+The hosted version uses invite-only registration to prevent unrestricted access
+to the demo database. Public self-service registration is disabled for the
+hosted environment.
+
+The public repository is intended to support local setup and code review.
+
+## Deployment Architecture
+
+The private hosted version uses:
+
+- Vercel for the React/Vite frontend
+- Render for the Spring Boot backend
+- Managed cloud MySQL for the database
+
+The backend is configured with environment variables for database access, JWT
+signing, CORS, and invite-only registration. Local admin tooling is not deployed
+or documented as part of the hosted app.
+
 ## Registration Modes
 
 The backend supports three registration modes:
@@ -193,7 +215,8 @@ The deployed application requires:
 - The deployed backend `/api` URL in `VITE_API_BASE_URL`
 - Demo data suitable for a portfolio walkthrough
 
-Docker is intentionally deferred until the deployment provider is selected.
+Detailed private deployment steps are documented in
+[deployment/private-deployment-guide.md](deployment/private-deployment-guide.md).
 
 The historical day-by-day development notes are preserved in
 [README-dev-log.md](README-dev-log.md) and the [notes](notes) directory.

@@ -33,3 +33,14 @@ VITE_API_BASE_URL=https://your-backend-domain.com/api
 
 Vite environment variables are embedded during the frontend build. Configure
 this value before running `npm run build`.
+
+## Private deployment flow
+
+1. Create managed MySQL and copy the JDBC values into Render.
+2. Deploy the backend to Render using `backend/Dockerfile`.
+3. Confirm `/api/health` returns `{"status":"ok"}`.
+4. Deploy the frontend to Vercel with `frontend` as the root directory.
+5. Set `VITE_API_BASE_URL` in Vercel to the Render backend `/api` URL.
+6. Copy the Vercel domain into `CORS_ALLOWED_ORIGINS` on Render and redeploy.
+
+Keep the real `JWT_SECRET`, `DB_PASSWORD`, and `INVITE_CODE` out of Git.
