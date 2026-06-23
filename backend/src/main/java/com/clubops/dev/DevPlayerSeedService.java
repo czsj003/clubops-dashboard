@@ -218,13 +218,13 @@ public class DevPlayerSeedService {
 
         playerPositionRepository.saveAll(positions);
 
-        PlayerLanguage english = PlayerLanguage.builder()
+        PlayerLanguage nativeLanguage = PlayerLanguage.builder()
                 .player(savedPlayer)
-                .languageCode(LanguageCode.ENGLISH)
+                .languageCode(defaultLanguage(nationality))
                 .fluency(10)
                 .build();
 
-        playerLanguageRepository.save(english);
+        playerLanguageRepository.save(nativeLanguage);
 
         if (nationality == CountryCode.PORTUGAL) {
             PlayerSecondaryNationality secondaryNationality = PlayerSecondaryNationality.builder()
@@ -247,6 +247,23 @@ public class DevPlayerSeedService {
 
         List<ContractBonus> bonuses = createSeedBonuses(savedContract, contract.getWageAmount(), mainPosition);
         contractBonusRepository.saveAll(bonuses);
+    }
+
+    private LanguageCode defaultLanguage(CountryCode nationality) {
+        return switch (nationality) {
+            case PORTUGAL, BRAZIL -> LanguageCode.PORTUGUESE;
+            case SPAIN, ARGENTINA, MEXICO -> LanguageCode.SPANISH;
+            case FRANCE, BELGIUM, SENEGAL -> LanguageCode.FRENCH;
+            case GERMANY -> LanguageCode.GERMAN;
+            case ITALY -> LanguageCode.ITALIAN;
+            case NETHERLANDS -> LanguageCode.DUTCH;
+            case TURKEY -> LanguageCode.TURKISH;
+            case SAUDI_ARABIA, MOROCCO -> LanguageCode.ARABIC;
+            case CHINA -> LanguageCode.CHINESE;
+            case JAPAN -> LanguageCode.JAPANESE;
+            case SOUTH_KOREA -> LanguageCode.KOREAN;
+            default -> LanguageCode.ENGLISH;
+        };
     }
 
     private PlayerAttribute createDefaultAttributes(

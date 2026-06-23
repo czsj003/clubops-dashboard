@@ -526,11 +526,49 @@ button {
 }
 
 .position-tags span {
-  background: #0b1020;
   border: 1px solid var(--border);
   padding: 5px 8px;
   border-radius: 8px;
   font-size: 13px;
+}
+
+.position-rating-tag {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.position-tags .pos-rating-none {
+  color: var(--muted);
+  background: transparent;
+}
+
+.position-tags .pos-rating-red {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.position-tags .pos-rating-dark-orange {
+  color: #fed7aa;
+  background: rgba(194, 65, 12, 0.22);
+}
+
+.position-tags .pos-rating-orange {
+  color: #fdba74;
+  background: rgba(249, 115, 22, 0.2);
+}
+
+.position-tags .pos-rating-light-yellow {
+  color: #fef08a;
+  background: rgba(250, 204, 21, 0.18);
+}
+
+.position-tags .pos-rating-light-green {
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.position-tags .pos-rating-green {
+  color: #86efac;
+  background: rgba(22, 163, 74, 0.28);
 }
 
 .mini-pitch {
@@ -572,21 +610,29 @@ button {
   background: #0f172a;
 }
 
-.pitch-dot.natural {
-  background: #84cc16;
-  box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.25);
+.pitch-dot.green {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
 }
 
-.pitch-dot.strong {
-  background: #facc15;
+.pitch-dot.light-green {
+  background: #86efac;
 }
 
-.pitch-dot.ok {
-  background: #38bdf8;
+.pitch-dot.light-yellow {
+  background: #fde68a;
 }
 
-.pitch-dot.weak {
-  background: #7f1d1d;
+.pitch-dot.orange {
+  background: #fb923c;
+}
+
+.pitch-dot.dark-orange {
+  background: #c2410c;
+}
+
+.pitch-dot.red {
+  background: #ef4444;
 }
 
 .pitch-dot.none {
@@ -1014,6 +1060,39 @@ button {
 
 .pitch-dot {
   border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.language-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+.language-editor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--panel-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.language-editor-row input {
+  width: 72px;
+}
+
+@media (max-width: 1000px) {
+  .language-editor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .language-editor-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .squad-toolbar {

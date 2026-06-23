@@ -39,6 +39,21 @@ export type CurrencyCode =
     | "BRL"
     | "ARS";
 
+export type LanguageCode =
+    | "ENGLISH"
+    | "SPANISH"
+    | "FRENCH"
+    | "GERMAN"
+    | "ITALIAN"
+    | "PORTUGUESE"
+    | "DUTCH"
+    | "TURKISH"
+    | "ARABIC"
+    | "JAPANESE"
+    | "KOREAN"
+    | "CHINESE"
+    | "OTHER";
+
 export type PlayerPositionType =
     | "GOALKEEPER"
     | "DEFENDER_LEFT"
@@ -100,7 +115,7 @@ export interface PlayerPosition {
 }
 
 export interface PlayerLanguage {
-    languageCode: string;
+    languageCode: LanguageCode;
     fluency: number;
 }
 

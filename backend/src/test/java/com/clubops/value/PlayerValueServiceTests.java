@@ -75,6 +75,57 @@ class PlayerValueServiceTests {
     }
 
     @Test
+    void englandProspectRemainsNearExpectedTwentyFiveMillionValue() {
+        Player player = player(18, Country.ENGLAND);
+        PlayerAttribute attributes = attributes(130, 185, 130, 130, 100);
+        PlayerValueBand band = band(
+                Country.ENGLAND,
+                BigDecimal.valueOf(8_000_000),
+                CurrencyCode.GBP
+        );
+
+        when(repository.findMatchingBand(Country.ENGLAND, 124))
+                .thenReturn(Optional.of(band));
+
+        BigDecimal value = service.calculateValueInGbp(
+                player,
+                attributes,
+                Map.of(PlayerPositionType.STRIKER, 20)
+        );
+
+        assertThat(value).isBetween(
+                BigDecimal.valueOf(23_000_000),
+                BigDecimal.valueOf(27_000_000)
+        );
+    }
+
+    @Test
+    void chinaMarketCapPreventsExtremeProspectInflation() {
+        Player player = player(18, Country.CHINA);
+        PlayerAttribute attributes = attributes(130, 185, 130, 130, 100);
+        PlayerValueBand band = band(
+                Country.CHINA,
+                BigDecimal.valueOf(20_000_000),
+                CurrencyCode.CNY
+        );
+
+        when(repository.findMatchingBand(Country.CHINA, 124))
+                .thenReturn(Optional.of(band));
+
+        BigDecimal valueInGbp = service.calculateValueInGbp(
+                player,
+                attributes,
+                Map.of(PlayerPositionType.STRIKER, 20)
+        );
+        BigDecimal valueInCny = valueInGbp.multiply(new BigDecimal("9.707"));
+
+        assertThat(valueInCny).isBetween(
+                BigDecimal.valueOf(28_000_000),
+                BigDecimal.valueOf(35_000_000)
+        );
+    }
+
+    @Test
     void allThreeReputationValuesAffectTheResult() {
         when(repository.findMatchingBand(
                 Country.ENGLAND,
@@ -190,8 +241,12 @@ class PlayerValueServiceTests {
     }
 
     private Player player(int age) {
+        return player(age, Country.ENGLAND);
+    }
+
+    private Player player(int age, Country country) {
         Club club = Club.builder()
-                .country(Country.ENGLAND)
+                .country(country)
                 .league(FootballLeague.EFL_CHAMPIONSHIP)
                 .build();
 
@@ -218,12 +273,20 @@ class PlayerValueServiceTests {
     }
 
     private PlayerValueBand band(BigDecimal baseValue) {
+        return band(Country.ENGLAND, baseValue, CurrencyCode.GBP);
+    }
+
+    private PlayerValueBand band(
+            Country country,
+            BigDecimal baseValue,
+            CurrencyCode currency
+    ) {
         return PlayerValueBand.builder()
-                .country(Country.ENGLAND)
+                .country(country)
                 .reputationMin(101)
                 .reputationMax(150)
                 .baseValue(baseValue)
-                .currency(CurrencyCode.GBP)
+                .currency(currency)
                 .build();
     }
 }

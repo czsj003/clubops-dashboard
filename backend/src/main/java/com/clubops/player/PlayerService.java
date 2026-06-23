@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -82,6 +83,7 @@ public class PlayerService {
     private final PlayerAbilityResolver playerAbilityResolver;
     private final ReleaseClausePolicyService releaseClausePolicyService;
     private final PlayerValueService playerValueService;
+    private final NationalityLanguageService nationalityLanguageService;
 
     @Transactional
     public List<PlayerListItemResponse> getCurrentUserPlayers(
@@ -175,8 +177,24 @@ public class PlayerService {
                 .map(PlayerPositionResponse::from)
                 .toList();
 
+        LanguageCode nativeLanguage = nationalityLanguageService.getDefaultLanguage(
+                player.getNationality()
+        );
+        ensureNativeLanguage(player, nativeLanguage);
+
         List<PlayerLanguageResponse> languageResponses = playerLanguageRepository.findByPlayer(player)
                 .stream()
+                .sorted(
+                        Comparator
+                                .comparing((PlayerLanguage language) ->
+                                        language.getLanguageCode() == nativeLanguage ? 0 : 1)
+                                .thenComparing(
+                                        PlayerLanguage::getFluency,
+                                        Comparator.reverseOrder()
+                                )
+                                .thenComparing(language ->
+                                        language.getLanguageCode().name())
+                )
                 .map(PlayerLanguageResponse::from)
                 .toList();
 
@@ -319,19 +337,7 @@ public class PlayerService {
         );
         playerRepository.save(savedPlayer);
 
-        if (request.languages() != null) {
-            List<PlayerLanguage> languages = request.languages()
-                    .entrySet()
-                    .stream()
-                    .map(entry -> PlayerLanguage.builder()
-                    .player(savedPlayer)
-                    .languageCode(entry.getKey())
-                    .fluency(entry.getValue())
-                    .build())
-                    .toList();
-
-            playerLanguageRepository.saveAll(languages);
-        }
+        savePlayerLanguages(savedPlayer, request.nationality(), request.languages());
 
         if (request.secondaryNationalities() != null) {
             List<PlayerSecondaryNationality> secondaryNationalities
@@ -753,19 +759,7 @@ public class PlayerService {
         playerLanguageRepository.deleteAll(playerLanguageRepository.findByPlayer(player));
         playerLanguageRepository.flush();
 
-        if (request.languages() != null) {
-            playerLanguageRepository.saveAll(
-                    request.languages()
-                            .entrySet()
-                            .stream()
-                            .map(entry -> PlayerLanguage.builder()
-                            .player(player)
-                            .languageCode(entry.getKey())
-                            .fluency(entry.getValue())
-                            .build())
-                            .toList()
-            );
-        }
+        savePlayerLanguages(player, request.nationality(), request.languages());
 
         secondaryNationalityRepository.deleteAll(secondaryNationalityRepository.findByPlayer(player));
         secondaryNationalityRepository.flush();
@@ -950,6 +944,64 @@ public class PlayerService {
                 throw new IllegalArgumentException("Language fluency must be between 1 and 10");
             }
         });
+    }
+
+    private void savePlayerLanguages(
+            Player player,
+            CountryCode nationality,
+            Map<LanguageCode, Integer> requestedLanguages
+    ) {
+        LanguageCode nativeLanguage =
+                nationalityLanguageService.getDefaultLanguage(nationality);
+        Map<LanguageCode, Integer> finalLanguages = new HashMap<>();
+
+        if (requestedLanguages != null) {
+            requestedLanguages.forEach((language, fluency) -> {
+                if (language == null) {
+                    throw new IllegalArgumentException("Language is required");
+                }
+                if (fluency == null || fluency < 1 || fluency > 10) {
+                    throw new IllegalArgumentException(
+                            "Language fluency must be between 1 and 10"
+                    );
+                }
+                finalLanguages.put(language, fluency);
+            });
+        }
+
+        finalLanguages.put(nativeLanguage, 10);
+
+        playerLanguageRepository.saveAll(
+                finalLanguages.entrySet()
+                        .stream()
+                        .map(entry -> PlayerLanguage.builder()
+                                .player(player)
+                                .languageCode(entry.getKey())
+                                .fluency(entry.getValue())
+                                .build())
+                        .toList()
+        );
+    }
+
+    private void ensureNativeLanguage(Player player, LanguageCode nativeLanguage) {
+        PlayerLanguage existing = playerLanguageRepository.findByPlayer(player)
+                .stream()
+                .filter(language -> language.getLanguageCode() == nativeLanguage)
+                .findFirst()
+                .orElse(null);
+
+        if (existing == null) {
+            playerLanguageRepository.save(
+                    PlayerLanguage.builder()
+                            .player(player)
+                            .languageCode(nativeLanguage)
+                            .fluency(10)
+                            .build()
+            );
+        } else if (existing.getFluency() != 10) {
+            existing.setFluency(10);
+            playerLanguageRepository.save(existing);
+        }
     }
 
     private void validateSecondaryNationalities(PlayerCreateRequest request) {

@@ -55,10 +55,12 @@ function MiniPitch({ positions }: MiniPitchProps) {
 }
 
 function getDotClass(rating: number) {
-    if (rating === 20) return "natural";
-    if (rating >= 15) return "strong";
-    if (rating >= 10) return "ok";
-    if (rating >= 2) return "weak";
+    if (rating >= 18) return "green";
+    if (rating >= 15) return "light-green";
+    if (rating >= 12) return "light-yellow";
+    if (rating >= 9) return "orange";
+    if (rating >= 5) return "dark-orange";
+    if (rating >= 2) return "red";
     return "none";
 }
 

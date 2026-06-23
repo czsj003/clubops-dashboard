@@ -5,6 +5,7 @@ import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import type {
   CountryCode,
+  LanguageCode,
   PlayerDetail,
   PlayerPositionType,
   ReleaseClausePolicy,
@@ -27,6 +28,10 @@ import {
 } from "../utils/playerPositions";
 import { nationalityOptions } from "../utils/nationalityOptions";
 import { getApiErrorMessage } from "../utils/errorUtils";
+import {
+  getDefaultLanguageForNationality,
+  languageOptions,
+} from "../utils/languageOptions";
 
 type AttributeMap = Record<string, number>;
 
@@ -41,6 +46,8 @@ function PlayerDeveloperEdit() {
   >(() => createPositionRatings());
   const [secondaryNationalities, setSecondaryNationalities] =
     useState<CountryCode[]>([]);
+  const [languages, setLanguages] =
+    useState<Partial<Record<LanguageCode, number>>>({});
   const [releaseClauseRule, setReleaseClauseRule] =
     useState<ReleaseClauseRule>("OPTIONAL");
   const [error, setError] = useState("");
@@ -60,6 +67,14 @@ function PlayerDeveloperEdit() {
         setReleaseClauseRule(policyResponse.data.rule);
         setSecondaryNationalities(
           response.data.secondaryNationalities.map((item) => item.countryCode)
+        );
+        setLanguages(
+          Object.fromEntries(
+            response.data.languages.map((language) => [
+              language.languageCode,
+              language.fluency,
+            ])
+          )
         );
 
         const loadedPositions = createPositionRatings();
@@ -163,6 +178,20 @@ function PlayerDeveloperEdit() {
     });
   }
 
+  function updateLanguage(language: LanguageCode, fluency: number) {
+    setLanguages((current) => {
+      const next = { ...current };
+
+      if (fluency <= 0) {
+        delete next[language];
+      } else {
+        next[language] = fluency;
+      }
+
+      return next;
+    });
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -182,13 +211,6 @@ function PlayerDeveloperEdit() {
           finalAttributes[field] = 0;
         });
       }
-
-      const languages = Object.fromEntries(
-        player.languages.map((language) => [
-          language.languageCode,
-          language.fluency,
-        ])
-      );
 
       await api.put(`/players/${player.id}`, {
         player: {
@@ -314,6 +336,45 @@ function PlayerDeveloperEdit() {
                   <span>{option.label}</span>
                 </label>
               ))}
+          </div>
+        </section>
+
+        <section className="form-section-card">
+          <h2>Languages</h2>
+
+          <div className="form-help">
+            Native language is controlled by primary nationality and cannot be
+            changed or removed.
+          </div>
+
+          <div className="language-editor-grid">
+            {languageOptions.map((option) => {
+              const nativeLanguage =
+                getDefaultLanguageForNationality(player.nationality);
+              const isNative = option.value === nativeLanguage;
+
+              return (
+                <label key={option.value} className="language-editor-row">
+                  <span>
+                    {option.label}
+                    {isNative ? " (Native)" : ""}
+                  </span>
+                  <input
+                    type="number"
+                    min={isNative ? 10 : 0}
+                    max={10}
+                    value={isNative ? 10 : languages[option.value] ?? 0}
+                    disabled={isNative}
+                    onChange={(event) =>
+                      updateLanguage(
+                        option.value,
+                        Number(event.target.value)
+                      )
+                    }
+                  />
+                </label>
+              );
+            })}
           </div>
         </section>
 

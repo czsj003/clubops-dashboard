@@ -5,6 +5,7 @@ import api from "../api/axios";
 import type { Team } from "../types/club";
 import type {
   CountryCode,
+  LanguageCode,
   PlayerPositionType,
   ReleaseClausePolicy,
   ReleaseClauseRule,
@@ -32,6 +33,10 @@ import {
   skinToneOptions,
 } from "../utils/playerAppearanceOptions";
 import { getApiErrorMessage } from "../utils/errorUtils";
+import {
+  getDefaultLanguageForNationality,
+  languageOptions,
+} from "../utils/languageOptions";
 
 type AttributeMap = Record<string, number>;
 
@@ -144,6 +149,8 @@ function PlayerForm() {
     useState<CountryCode>("ENGLAND");
   const [secondaryNationalities, setSecondaryNationalities] =
     useState<CountryCode[]>([]);
+  const [extraLanguages, setExtraLanguages] =
+    useState<Partial<Record<LanguageCode, number>>>({});
   const [heightCm, setHeightCm] = useState(180);
   const [weightKg, setWeightKg] = useState(75);
   const [race, setRace] = useState("UNKNOWN");
@@ -266,6 +273,20 @@ function PlayerForm() {
     });
   }
 
+  function updateExtraLanguage(language: LanguageCode, fluency: number) {
+    setExtraLanguages((current) => {
+      const next = { ...current };
+
+      if (fluency <= 0) {
+        delete next[language];
+      } else {
+        next[language] = fluency;
+      }
+
+      return next;
+    });
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -309,9 +330,7 @@ function PlayerForm() {
         birthCountry: nationality,
         nationality,
         secondaryNationalities,
-        languages: {
-          ENGLISH: 10,
-        },
+        languages: extraLanguages,
         positions: positionRatings,
         attributes: finalAttributes,
         potentialMode,
@@ -502,6 +521,39 @@ function PlayerForm() {
                     onChange={() => toggleSecondaryNationality(option.value)}
                   />
                   <span>{option.label}</span>
+                </label>
+              ))}
+          </div>
+        </FormSection>
+
+        <FormSection title="Languages">
+          <div className="form-help">
+            Native language is generated from primary nationality and always
+            saved as 10/10. Set another language to 0 to leave it out.
+          </div>
+
+          <div className="language-editor-grid">
+            {languageOptions
+              .filter(
+                (option) =>
+                  option.value !==
+                  getDefaultLanguageForNationality(nationality)
+              )
+              .map((option) => (
+                <label key={option.value} className="language-editor-row">
+                  <span>{option.label}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={extraLanguages[option.value] ?? 0}
+                    onChange={(event) =>
+                      updateExtraLanguage(
+                        option.value,
+                        Number(event.target.value)
+                      )
+                    }
+                  />
                 </label>
               ))}
           </div>

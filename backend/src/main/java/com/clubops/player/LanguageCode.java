@@ -8,6 +8,7 @@ public enum LanguageCode {
     ITALIAN,
     PORTUGUESE,
     DUTCH,
+    TURKISH,
     ARABIC,
     JAPANESE,
     KOREAN,

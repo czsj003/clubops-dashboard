@@ -1,6 +1,7 @@
 package com.clubops.value;
 
 import com.clubops.club.Club;
+import com.clubops.club.Country;
 import com.clubops.currency.CurrencyService;
 import com.clubops.player.Player;
 import com.clubops.player.PlayerAttribute;
@@ -44,10 +45,13 @@ public class PlayerValueService {
                 attributes.getCurrentAbility(),
                 attributes.getPotentialAbility(),
                 player.getAge()
-        );
+        ).multiply(countryUpsideFactor(club.getCountry()));
 
-        BigDecimal finalValue = establishedValue
+        BigDecimal marketAdjustedValue = establishedValue
                 .add(potentialValue)
+                .min(establishedValue.multiply(countryUpsideCap(club.getCountry())));
+
+        BigDecimal finalValue = marketAdjustedValue
                 .multiply(positionMultiplier(positions))
                 .multiply(versatilityMultiplier(positions));
 
@@ -101,6 +105,40 @@ public class PlayerValueService {
         if (age <= 34) return new BigDecimal("0.70");
         if (age <= 36) return new BigDecimal("0.52");
         return new BigDecimal("0.35");
+    }
+
+    private BigDecimal countryUpsideFactor(Country country) {
+        return switch (country) {
+            case ENGLAND -> new BigDecimal("0.95");
+            case SPAIN -> new BigDecimal("0.95");
+            case GERMANY -> new BigDecimal("0.90");
+            case ITALY, FRANCE -> new BigDecimal("0.85");
+            case PORTUGAL -> new BigDecimal("0.75");
+            case NETHERLANDS -> new BigDecimal("0.70");
+            case BELGIUM, BRAZIL -> new BigDecimal("0.65");
+            case ARGENTINA -> new BigDecimal("0.60");
+            case TURKEY, SAUDI_ARABIA -> new BigDecimal("0.45");
+            case USA -> new BigDecimal("0.40");
+            case CHINA -> new BigDecimal("0.25");
+        };
+    }
+
+    private BigDecimal countryUpsideCap(Country country) {
+        return switch (country) {
+            case ENGLAND -> new BigDecimal("5.00");
+            case SPAIN -> new BigDecimal("4.50");
+            case GERMANY -> new BigDecimal("2.60");
+            case ITALY -> new BigDecimal("2.40");
+            case FRANCE -> new BigDecimal("2.30");
+            case PORTUGAL -> new BigDecimal("2.00");
+            case NETHERLANDS -> new BigDecimal("1.90");
+            case BELGIUM -> new BigDecimal("1.80");
+            case BRAZIL -> new BigDecimal("1.75");
+            case ARGENTINA -> new BigDecimal("1.70");
+            case TURKEY, SAUDI_ARABIA -> new BigDecimal("1.50");
+            case USA -> new BigDecimal("1.45");
+            case CHINA -> new BigDecimal("1.35");
+        };
     }
 
     private BigDecimal positionMultiplier(

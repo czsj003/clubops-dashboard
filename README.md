@@ -410,3 +410,23 @@ Local-only administration:
   related player data.
 - The local admin implementation and credentials are excluded from Git using
   `.gitignore`.
+
+## Day 13 Progress
+
+Improved player languages, position display, local value-band editing, and
+market value calculation.
+
+Changes:
+
+- Players automatically receive a native language from primary nationality.
+- Native language is always saved as fluency 10 and cannot be removed.
+- Creation and developer edit support additional languages from fluency 1-10.
+- Languages display with native language first, then by fluency.
+- The position panel only lists positions rated 12 or higher.
+- Position tags and pitch dots use seven rating color bands.
+- The local admin value editor displays all 20 standard reputation ranges.
+- All country ranges can be saved in one operation.
+- Blank value fields are saved as 0 and values such as 2500 are accepted.
+- Potential value growth is adjusted by country market strength.
+- Low-market countries cap age and potential inflation while mature markets
+  retain a stronger prospect premium.

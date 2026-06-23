@@ -2,6 +2,8 @@ package com.clubops.player;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,6 +14,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -75,6 +78,8 @@ class PlayerServiceValidationTests {
     private PlayerAbilityResolver playerAbilityResolver;
     @Mock
     private PlayerValueService playerValueService;
+    @Mock
+    private NationalityLanguageService nationalityLanguageService;
 
     @InjectMocks
     private PlayerService playerService;
@@ -240,6 +245,39 @@ class PlayerServiceValidationTests {
                 team,
                 null
         );
+    }
+
+    @Test
+    void nativeLanguageIsAlwaysSavedAtFluencyTen() {
+        Player player = Player.builder().id(1L).build();
+        when(nationalityLanguageService.getDefaultLanguage(CountryCode.CHINA))
+                .thenReturn(LanguageCode.CHINESE);
+
+        ReflectionTestUtils.invokeMethod(
+                playerService,
+                "savePlayerLanguages",
+                player,
+                CountryCode.CHINA,
+                Map.of(
+                        LanguageCode.CHINESE, 3,
+                        LanguageCode.ENGLISH, 7
+                )
+        );
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<PlayerLanguage>> captor =
+                ArgumentCaptor.forClass(List.class);
+        verify(playerLanguageRepository).saveAll(captor.capture());
+
+        assertThat(captor.getValue())
+                .extracting(
+                        PlayerLanguage::getLanguageCode,
+                        PlayerLanguage::getFluency
+                )
+                .containsExactlyInAnyOrder(
+                        org.assertj.core.groups.Tuple.tuple(LanguageCode.CHINESE, 10),
+                        org.assertj.core.groups.Tuple.tuple(LanguageCode.ENGLISH, 7)
+                );
     }
 
     private void validate(PlayerCreateRequest request) {

@@ -8,7 +8,15 @@ interface PositionPanelProps {
 }
 
 function PositionPanel({ positions, isGoalkeeper }: PositionPanelProps) {
-    const sortedPositions = [...positions].sort((a, b) => b.rating - a.rating);
+    const sortedPositions = [...positions].sort((a, b) => {
+        if (b.rating !== a.rating) return b.rating - a.rating;
+        return formatPosition(a.positionType).localeCompare(
+            formatPosition(b.positionType)
+        );
+    });
+    const visiblePositions = sortedPositions.filter(
+        (position) => position.rating >= 12
+    );
 
     const naturalPositions = sortedPositions
         .filter((position) => position.rating === 20)
@@ -20,8 +28,13 @@ function PositionPanel({ positions, isGoalkeeper }: PositionPanelProps) {
             <h3>Positions</h3>
 
             <div className="position-tags">
-                {sortedPositions.map((position) => (
-                    <span key={position.id}>
+                {visiblePositions.map((position) => (
+                    <span
+                        key={position.id}
+                        className={`position-rating-tag ${getPositionRatingClass(
+                            position.rating
+                        )}`}
+                    >
                         {formatPosition(position.positionType)} {position.rating}
                     </span>
                 ))}
@@ -34,6 +47,16 @@ function PositionPanel({ positions, isGoalkeeper }: PositionPanelProps) {
             </div>
         </section>
     );
+}
+
+function getPositionRatingClass(value: number) {
+    if (value >= 18) return "pos-rating-green";
+    if (value >= 15) return "pos-rating-light-green";
+    if (value >= 12) return "pos-rating-light-yellow";
+    if (value >= 9) return "pos-rating-orange";
+    if (value >= 5) return "pos-rating-dark-orange";
+    if (value >= 2) return "pos-rating-red";
+    return "pos-rating-none";
 }
 
 export default PositionPanel;
